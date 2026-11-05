@@ -70,3 +70,4 @@ Design gate: score `docs/factory/DESIGN_PLAYBOOK.md` §9 into `docs/design-qa.md
 - Never trust a client flag for plans: gate with `requirePlan()` on the server.
 - Cookie-auth POST/PATCH/DELETE go through `withApi()` (Origin check). Signed endpoints (Stripe, unsubscribe, cron) opt out explicitly.
 - Next.js 16: middleware is `src/proxy.ts`; Cache Components are off (decision D-K3).
+- Cloud sessions cannot push tags through the git proxy: run the "Create tag" workflow (`.github/workflows/tag.yml`) instead.
