@@ -7,6 +7,8 @@
 - Stripe test catalogue created (docs/STRIPE.md). Vercel project `postslot` created on the new account with generated secrets.
 - **Blocked on owner/orchestrator:** Atlas DB user `postslot-app` (connector needs an interactive confirmation); `STRIPE_SECRET_KEY_TEST`; `RESEND_API_KEY`. Running in stub mode until then.
 
+- Live: https://postslot.vercel.app (public, health ok, magic-link send ok). Full live flow (verify -> org -> checkout -> portal) waits on Mongo + Stripe key; proven locally by Playwright e2e on the memory driver.
+
 ## Next
 1. Merge PR, deploy, tag `kit-v1`, notify orchestrator.
 2. Phase 0 for Postslot: docs/DESIGN.md, SECTION_PLAN.md, ARCHITECTURE.md, ROADMAP.md, docs/design/mock.html + screenshots. Wait for design approval.
