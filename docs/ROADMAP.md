@@ -14,12 +14,12 @@ Gate before M1 UI: the orchestrator approves `docs/DESIGN.md` and `docs/design/m
 - [ ] llms.txt and the first docs pages (getting started, endpoint reference).
 
 ## M2: Ingest and spam (P1, P2, P3)
-- [ ] `forms` CRUD, form key, recipients and verification email.
-- [ ] `/f/:key` endpoint with all special fields, size limits, CORS, redirect/JSON modes.
-- [ ] Edge layers: honeypot, time token + `ps.js`, ALTCHA, domain lock, rate limits.
-- [ ] Rules engine, token Bayes, quarantine, "Not spam" release, `sender_allow`.
-- [ ] Tests per signal; e2e for the plain HTML form and cross-origin fetch.
-- [ ] Usage meters: legit/spam/held (no soft cap enforcement yet).
+- [x] `forms` CRUD, form key, recipients and verification email.
+- [x] `/f/:key` endpoint with all special fields, size limits, CORS, redirect/JSON modes.
+- [x] Edge layers: honeypot, time token + `ps.js`, ALTCHA, domain lock, rate limits.
+- [x] Rules engine, token Bayes, quarantine, "Not spam" release, `sender_allow`.
+- [x] Tests per signal; e2e for the plain HTML form and cross-origin fetch.
+- [x] Usage meters: legit/spam/held (no soft cap enforcement yet).
 
 ## M3: Delivery and bounces (P4, P5, P6)
 - [ ] `Mailer` event interface, provider adapter, `/api/hooks/mail` with signature check and idempotency.

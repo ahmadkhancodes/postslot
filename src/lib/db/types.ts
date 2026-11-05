@@ -85,8 +85,27 @@ export interface Suppression {
   at: Date;
 }
 
+/** Mongo-style filter subset implemented by both drivers: equality, $in, $ne, $lt, $lte, $gt, $gte, $exists, $contains (case-insensitive substring). */
+export type DocFilter = Record<string, unknown>;
+
+/** Minimal document store for Postslot collections (forms, submissions, ...). `app` is added and stripped by the driver. */
+export interface DocStore<T extends { _id: string }> {
+  /** Returns false when the _id already exists (idempotency keys, unique natural keys encoded in _id). */
+  insert(doc: T): Promise<boolean>;
+  get(id: string): Promise<T | null>;
+  findOne(filter: DocFilter): Promise<T | null>;
+  find(filter: DocFilter, opts?: { sort?: Record<string, 1 | -1>; limit?: number; skip?: number }): Promise<T[]>;
+  /** $set `set` (undefined values remove the field) and $inc `inc` on every match; with upsert (filter must be { _id }) creates the doc. Returns matched or upserted count. */
+  update(filter: DocFilter, set: Partial<Omit<T, "_id">> | Record<string, unknown>, opts?: { inc?: Record<string, number>; upsert?: boolean }): Promise<number>;
+  delete(filter: DocFilter): Promise<number>;
+  count(filter: DocFilter): Promise<number>;
+}
+
 export interface Db {
   readonly app: string;
+
+  /** Typed document collection (forms, recipients, submissions, deliveries, delivery_events, ...). */
+  docs<T extends { _id: string }>(name: string): DocStore<T>;
 
   // billing
   getBillingAccount(orgId: string): Promise<BillingAccount | null>;
@@ -137,3 +156,6 @@ export interface Db {
 }
 
 export const DELIVERY_TTL_DAYS = 90;
+
+/** Collections that hold an `orgId` and are exported/deleted with the org (privacy). */
+export const ORG_DOC_COLLECTIONS = ["forms", "recipients", "submissions", "deliveries", "delivery_events", "sender_allow", "bayes_tokens"] as const;

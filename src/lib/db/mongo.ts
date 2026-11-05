@@ -1,6 +1,6 @@
 import { MongoClient, type Collection, type Db as MongoDatabase, type Document } from "mongodb";
 import { uuidv7 } from "@/lib/ids";
-import { DELIVERY_TTL_DAYS, type AuditEntry, type BillingAccount, type Db, type Entitlement, type Suppression, type WebhookDelivery, type WebhookEndpoint } from "./types";
+import { DELIVERY_TTL_DAYS, ORG_DOC_COLLECTIONS, type AuditEntry, type BillingAccount, type Db, type DocFilter, type DocStore, type Entitlement, type Suppression, type WebhookDelivery, type WebhookEndpoint } from "./types";
 
 // Ported from trayo server/db/mongo.ts. Changes: global singleton client (Vercel), pool 10, Date TTLs,
 // stripe events recorded after success, no sync/family/anonymous. Use only from runtime = "nodejs" routes.
@@ -31,8 +31,68 @@ export function createMongoDb(uri: string, dbName: string, app: string): Db {
     return rest as T;
   };
 
+  const toMongo = (f: DocFilter): Record<string, unknown> => {
+    const out: Record<string, unknown> = { app };
+    for (const [k, v] of Object.entries(f)) {
+      if (v && typeof v === "object" && !(v instanceof Date) && "$contains" in v) {
+        const { $contains, ...rest } = v as Record<string, unknown>;
+        out[k] = { ...rest, $regex: String($contains).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" };
+      } else out[k] = v;
+    }
+    return out;
+  };
+  const docs = <T extends { _id: string }>(name: string): DocStore<T> => {
+    const c = () => col<Record<string, unknown>>(name);
+    const clean = (d: Record<string, unknown> | null) => {
+      if (!d) return null;
+      const { app: _a, ...rest } = d;
+      return rest as unknown as T;
+    };
+    return {
+      async insert(doc) {
+        try {
+          await (await c()).insertOne({ ...doc, app } as never);
+          return true;
+        } catch (e) {
+          if ((e as { code?: number }).code === 11000) return false;
+          throw e;
+        }
+      },
+      async get(id) {
+        return clean(await (await c()).findOne({ _id: id, app } as never));
+      },
+      async findOne(f) {
+        return clean(await (await c()).findOne(toMongo(f) as never));
+      },
+      async find(f, { sort, limit = 1000, skip = 0 } = {}) {
+        let cur = (await c()).find(toMongo(f) as never);
+        if (sort) cur = cur.sort(sort as never);
+        return (await cur.skip(skip).limit(Math.min(limit, 5000)).toArray()).map((d) => clean(d)!);
+      },
+      async update(f, set, { inc, upsert } = {}) {
+        const update: Record<string, unknown> = {};
+        // undefined means "remove the field" in both drivers.
+        const defined = Object.fromEntries(Object.entries(set).filter(([, v]) => v !== undefined));
+        const removed = Object.fromEntries(Object.entries(set).filter(([, v]) => v === undefined).map(([k]) => [k, ""]));
+        if (Object.keys(defined).length) update.$set = defined;
+        if (Object.keys(removed).length) update.$unset = removed;
+        if (inc && Object.keys(inc).length) update.$inc = inc;
+        if (!Object.keys(update).length) return 0;
+        const r = await (await c()).updateMany(toMongo(f) as never, update as never, { upsert });
+        return r.matchedCount + r.upsertedCount;
+      },
+      async delete(f) {
+        return (await (await c()).deleteMany(toMongo(f) as never)).deletedCount;
+      },
+      async count(f) {
+        return (await c()).countDocuments(toMongo(f) as never);
+      },
+    };
+  };
+
   return {
     app,
+    docs,
     async getBillingAccount(id) {
       return strip<BillingAccount>(await (await col<WithId<BillingAccount>>("billing_accounts")).findOne({ _id: id, app }));
     },
@@ -189,7 +249,10 @@ export function createMongoDb(uri: string, dbName: string, app: string): Db {
         this.listWebhookEndpoints(orgId),
         this.listAudit(orgId, { limit: 200 }),
       ]);
-      return { billingAccount, entitlement, webhookEndpoints: endpoints.map(({ secret: _s, ...rest }) => rest), auditLog };
+      const forms = await docs("forms").find({ orgId });
+      const recipients = (await docs<{ _id: string; verifyTokenHash?: string }>("recipients").find({ orgId })).map(({ verifyTokenHash: _t, ...r }) => r);
+      const submissions = await docs("submissions").find({ orgId }, { sort: { receivedAt: -1 }, limit: 5000 });
+      return { billingAccount, entitlement, webhookEndpoints: endpoints.map(({ secret: _s, ...rest }) => rest), auditLog, forms, recipients, submissions };
     },
     async deleteOrgData(orgId) {
       const d = await db();
@@ -198,6 +261,7 @@ export function createMongoDb(uri: string, dbName: string, app: string): Db {
       await d.collection("usage").deleteMany({ app, orgId });
       await d.collection("webhook_endpoints").deleteMany({ app, orgId });
       await d.collection("webhook_deliveries").deleteMany({ app, orgId });
+      for (const c of ORG_DOC_COLLECTIONS) await d.collection(c).deleteMany({ app, orgId });
     },
   };
 }
@@ -215,6 +279,24 @@ export async function ensureIndexes(uri: string, dbName: string) {
   await d.collection("webhook_deliveries").createIndex({ app: 1, status: 1, nextAttemptAt: 1 });
   await d.collection("webhook_deliveries").createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
   await d.collection("suppressions").createIndex({ app: 1, email: 1 });
+  // Postslot collections (docs/ARCHITECTURE.md section 2)
+  await d.collection("forms").createIndex({ key: 1 }, { unique: true });
+  await d.collection("forms").createIndex({ app: 1, orgId: 1, createdAt: -1 });
+  await d.collection("recipients").createIndex({ app: 1, orgId: 1, email: 1 }, { unique: true });
+  await d.collection("recipients").createIndex({ verifyTokenHash: 1 });
+  await d.collection("submissions").createIndex({ app: 1, formId: 1, receivedAt: -1 });
+  await d.collection("submissions").createIndex({ app: 1, orgId: 1, status: 1, receivedAt: -1 });
+  await d.collection("submissions").createIndex({ app: 1, orgId: 1, emailLower: 1 });
+  await d.collection("submissions").createIndex({ status: 1, receivedAt: 1 });
+  await d.collection("submissions").createIndex({ purgeAt: 1 }, { expireAfterSeconds: 0 });
+  await d.collection("deliveries").createIndex({ mailerMessageId: 1 }, { unique: true, sparse: true });
+  await d.collection("deliveries").createIndex({ submissionId: 1 });
+  await d.collection("deliveries").createIndex({ status: 1, nextAttemptAt: 1 });
+  await d.collection("delivery_events").createIndex({ submissionId: 1, at: 1 });
+  await d.collection("delivery_events").createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
+  await d.collection("sender_allow").createIndex({ app: 1, formId: 1, email: 1 }, { unique: true });
+  await d.collection("bayes_tokens").createIndex({ app: 1, scope: 1, token: 1 }, { unique: true });
+  await d.collection("mail_inbound_events").createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
   // Better Auth collections
   await d.collection("user").createIndex({ email: 1 }, { unique: true });
   await d.collection("session").createIndex({ token: 1 }, { unique: true });
