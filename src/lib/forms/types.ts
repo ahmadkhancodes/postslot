@@ -12,6 +12,13 @@ export interface FormRules {
 
 export const DEFAULT_RULES: FormRules = { maxLinks: 2, blockedPhrases: [], blockScripts: true, blockDisposable: true };
 
+export type TemplateId = "default" | "compact" | "plain";
+export const TEMPLATES: { id: TemplateId; label: string; hint: string }[] = [
+  { id: "default", label: "Default", hint: "A card with one row per field." },
+  { id: "compact", label: "Compact table", hint: "A dense bordered table, good for forms with many fields." },
+  { id: "plain", label: "Plain text", hint: "No HTML at all. Best for clients that block formatting." },
+];
+
 export interface Form {
   _id: string;
   orgId: string;
@@ -26,10 +33,15 @@ export interface Form {
   rules: FormRules;
   altchaEnabled: boolean;
   subjectTemplate: string;
+  /** Notification layout. Missing = default (forms created before M3). */
+  template?: TemplateId;
   recipientIds: string[];
   blockedCount: number;
   lastBlockedAt?: Date;
   lastBlockedOrigin?: string;
+  /** Blocked-origin troubleshooting email: when it was last sent and the blockedCount at that time. */
+  troubleshootSentAt?: Date;
+  troubleshootAtCount?: number;
   createdAt: Date;
 }
 

@@ -24,16 +24,16 @@ Gate before M1 UI: the orchestrator approves `docs/DESIGN.md` and `docs/design/m
 ## M3: Delivery and bounces (P4, P5, P6)
 - [ ] `Mailer` event interface, provider adapter, `/api/hooks/mail` with signature check and idempotency.
 - [ ] Dispatch, deliveries, delivery events, timeline composition, postmark states.
-- [ ] Templates (default, compact, plain), subject variables, preview parity test.
+- [x] Templates (default, compact, plain), subject variables, preview parity test (M3 code).
 - [ ] Bounce classification, suppressions scoped per org, banner, owner alerts, unsuppress and redeliver with the 3 per day cap.
 - [ ] Complaint handling (provider event now, FBL on the VPS later).
 - [ ] Honesty gate flag `own_mta_live` wired into copy.
 
 ## M4: Inbox, onboarding, soft cap, admin (P7, P8, P9, P11)
-- [ ] Inbox list, filters, search, detail view, export CSV/JSON, retention and purge cron.
-- [ ] Search benchmark on 100k rows.
-- [ ] Snippet picker (HTML, React, Next.js, Astro, Vue, Svelte, Webflow, Framer, WordPress, 4 AI builder prompts), field name linter, "Send test submission", 10 minute troubleshooting email.
-- [ ] Soft cap hold and release, 80%/100% notices, usage meter UI.
+- [x] Inbox list, filters, search (text index), detail view, export CSV/JSON, retention and purge cron (done in M2/M3).
+- [~] Search benchmark on 100k rows: memory done (`scripts/bench-search.ts`), Mongo pending.
+- [~] Snippet picker (done M2), field name linter, "Send test submission", troubleshooting email after 3 rejected posts (done M3); 4 AI builder prompts still open.
+- [~] Soft cap hold and release (M2), 80%/100% notices (M3); usage meter UI exists.
 - [ ] Founder admin: workspace search, abuse flags, suspend form, plan override, suppression list, audit; canary cron, `/status`.
 
 ## M5: QA, hardening, launch readiness (P12 and all)

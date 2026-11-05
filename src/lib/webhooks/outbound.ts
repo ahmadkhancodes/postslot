@@ -29,10 +29,11 @@ export async function verifySignature(secret: string, body: string, header: stri
 }
 
 /** Queue an event to every enabled endpoint subscribed to it (or to "*"), and try once immediately. */
-export async function emitEvent(orgId: string, event: string, data: unknown, opts: { db?: Db; fetchFn?: typeof fetch; now?: Date } = {}) {
+export async function emitEvent(orgId: string, event: string, data: unknown, opts: { db?: Db; fetchFn?: typeof fetch; now?: Date; formId?: string } = {}) {
   const db = opts.db ?? (await getDb());
   const now = opts.now ?? new Date();
-  const eps = (await db.listWebhookEndpoints(orgId)).filter((e) => e.enabled && (e.events.includes("*") || e.events.includes(event)));
+  // An endpoint with a formId only gets that form's events; org-wide endpoints (no formId) get everything they subscribed to.
+  const eps = (await db.listWebhookEndpoints(orgId)).filter((e) => e.enabled && (!e.formId || e.formId === opts.formId) && (e.events.includes("*") || e.events.includes(event)));
   const out: WebhookDelivery[] = [];
   for (const ep of eps) {
     const id = uuidv7();
@@ -89,6 +90,23 @@ export async function attemptDelivery(
   };
   await opts.db.updateDelivery(d.id, patch);
   return { ...d, ...patch };
+}
+
+/** Replay a logged delivery: a new delivery with the same payload and event, sent now (the receiver dedupes on `id`). */
+export async function replayDelivery(orgId: string, deliveryId: string, opts: { db?: Db; fetchFn?: typeof fetch; now?: Date } = {}): Promise<WebhookDelivery | null> {
+  const db = opts.db ?? (await getDb());
+  const now = opts.now ?? new Date();
+  const old = await db.getDelivery(orgId, deliveryId);
+  const ep = old && (await db.getWebhookEndpoint(orgId, old.endpointId));
+  if (!old || !ep) return null;
+  const id = uuidv7();
+  const payload = JSON.stringify({ ...(JSON.parse(old.payload) as object), id, replayOf: old.id });
+  const d: WebhookDelivery = {
+    id, app: db.app, orgId, endpointId: ep.id, event: old.event, payload, status: "pending", attempts: 0, nextAttemptAt: now,
+    lastStatusCode: null, lastError: null, createdAt: now, updatedAt: now, expireAt: new Date(now.getTime() + DELIVERY_TTL_DAYS * 864e5),
+  };
+  await db.createDelivery(d);
+  return attemptDelivery(d, ep, { db, fetchFn: opts.fetchFn, now });
 }
 
 /** Cron job: retry due deliveries. */

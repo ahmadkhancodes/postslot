@@ -1,0 +1,27 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { FormTabs } from "@/components/app/forms/form-tabs";
+import { PageHeader } from "@/components/app/page-header";
+import { can } from "@/lib/auth/roles";
+import { requireOrg } from "@/lib/auth/session";
+import { getDb } from "@/lib/db";
+import { appUrl } from "@/lib/env";
+import type { Form } from "@/lib/forms/types";
+import { OnboardingClient } from "./onboarding-client";
+
+export const metadata = { title: "Check and test" };
+export const dynamic = "force-dynamic";
+
+export default async function OnboardingPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const ctx = await requireOrg({ page: true });
+  const form = await (await getDb()).docs<Form>("forms").get(id);
+  if (!form || form.orgId !== ctx.org.id) notFound();
+  return (
+    <>
+      <PageHeader title={form.name} description={<><Link href="/app/forms" className="underline underline-offset-4">All forms</Link> · make sure the form is wired correctly, then send a test</>} />
+      <FormTabs id={form._id} active="onboarding" />
+      <OnboardingClient formId={form._id} endpoint={`${appUrl()}/f/${form.key}`} canWrite={can(ctx.role, "data", "write")} paused={form.status !== "active"} />
+    </>
+  );
+}

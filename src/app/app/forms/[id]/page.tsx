@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { FormTabs } from "@/components/app/forms/form-tabs";
 import { FormManager } from "@/components/app/forms/form-manager";
 import { PageHeader } from "@/components/app/page-header";
 import { can } from "@/lib/auth/roles";
@@ -28,6 +29,7 @@ export default async function FormPage({ params }: { params: Promise<{ id: strin
         title={form.name}
         description={<><Link href="/app/forms" className="underline underline-offset-4">All forms</Link> · <Link href={`/app?form=${form._id}`} className="underline underline-offset-4">Open inbox</Link></>}
       />
+      <FormTabs id={form._id} active="install" />
       <FormManager
         canWrite={can(ctx.role, "data", "write")}
         form={{ id: form._id, name: form.name, status: form.status, redirectUrl: form.redirectUrl ?? "", allowedOrigins: form.allowedOrigins, altchaEnabled: form.altchaEnabled, spamMode: form.spamMode, blockedCount: form.blockedCount, subjectTemplate: form.subjectTemplate }}

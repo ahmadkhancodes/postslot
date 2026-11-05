@@ -1,4 +1,5 @@
 import { uuidv7 } from "@/lib/ids";
+import { matchText, parseTextQuery } from "./text";
 import { ORG_DOC_COLLECTIONS, type AuditEntry, type BillingAccount, type Db, type DocFilter, type DocStore, type Entitlement, type Suppression, type WebhookDelivery, type WebhookEndpoint } from "./types";
 
 const cmpVal = (v: unknown) => (v instanceof Date ? v.getTime() : v);
@@ -20,6 +21,7 @@ export function matchDoc(doc: Record<string, unknown>, filter: DocFilter): boole
           case "$gte": return v != null && a >= b;
           case "$exists": return (v !== undefined) === Boolean(arg);
           case "$contains": return typeof v === "string" && v.toLowerCase().includes(String(arg).toLowerCase());
+          case "$text": return matchText(doc, v, parseTextQuery(String(arg)));
           default: throw new Error(`unsupported_filter_${op}`);
         }
       });

@@ -93,7 +93,7 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
         {filter !== "all" ? <input type="hidden" name="filter" value={filter} /> : null}
         <div className="relative min-w-0 flex-1">
           <MagnifyingGlass size={18} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-          <Input name="q" defaultValue={q} placeholder="Search names, emails and messages" aria-label="Search submissions" className="pl-10" />
+          <Input name="q" defaultValue={q} placeholder="Search words in names, emails and messages" aria-label="Search submissions" className="pl-10" />
         </div>
         <div className="sm:w-56 sm:shrink-0">
           <Select name="form" defaultValue={formId ?? ""} aria-label="Form">
