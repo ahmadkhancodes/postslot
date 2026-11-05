@@ -55,6 +55,8 @@ export interface WebhookEndpoint {
   secret: string;
   events: string[];
   enabled: boolean;
+  /** Set = the endpoint only receives events of this form (Postslot per-form webhooks). */
+  formId?: string;
   createdAt: Date;
 }
 
@@ -85,7 +87,7 @@ export interface Suppression {
   at: Date;
 }
 
-/** Mongo-style filter subset implemented by both drivers: equality, $in, $ne, $lt, $lte, $gt, $gte, $exists, $contains (case-insensitive substring). */
+/** Mongo-style filter subset implemented by both drivers: equality, $in, $ne, $lt, $lte, $gt, $gte, $exists, $contains (case-insensitive substring), $text (word search, see `matchText`: terms OR, "quoted phrases" and -excluded words; Mongo needs the text index from `npm run db:indexes`). */
 export type DocFilter = Record<string, unknown>;
 
 /** Minimal document store for Postslot collections (forms, submissions, ...). `app` is added and stripped by the driver. */
@@ -158,4 +160,4 @@ export interface Db {
 export const DELIVERY_TTL_DAYS = 90;
 
 /** Collections that hold an `orgId` and are exported/deleted with the org (privacy). */
-export const ORG_DOC_COLLECTIONS = ["forms", "recipients", "submissions", "deliveries", "delivery_events", "sender_allow", "bayes_tokens"] as const;
+export const ORG_DOC_COLLECTIONS = ["forms", "recipients", "submissions", "deliveries", "delivery_events", "sender_allow", "bayes_tokens", "usage_notices"] as const;

@@ -40,3 +40,17 @@
 - **Checks:** lint (0 errors), typecheck, 110 unit tests (no network), build green; Playwright e2e `tests/e2e/inbox.spec.ts` green (plain HTML form, cross-origin fetch, honeypot, inbox, search, snippet picker). Screenshots: `docs/qa/m2/inbox-{375,1440}-{light,dark}.png`.
 - **NOT deployed** (per task). Env to set on deploy: `MAIL_WEBHOOK_SECRET` (and the provider webhook pointing at `/api/hooks/mail`), then `npm run db:indexes`; add `deliver-pending` to the Cloudflare cron worker JOBS (already in wrangler.toml).
 - **Next: M3** templates (compact, plain, preview parity), outbound webhooks for submissions, onboarding (field linter, "Send test submission", troubleshooting email), owner alert emails, soft-cap notices at 80/100%, retention purge. Search index and 100k benchmark in M4.
+
+## 5 Nov 2026 (M3 code done, not deployed)
+- **M3 built on the kit, per ROADMAP M3 and the "Left for M3" list.** Not deployed (per task).
+  - **Templates:** default, compact table, plain text, `{{field}}` subjects; one renderer for preview and send (`renderNotification`, parity tested). Page `/app/forms/[id]/templates` with live server preview.
+  - **Outbound webhooks per form** via the kit module (HMAC-SHA256, retries, log, replay): `submission.received|delivered|bounced|held`. Gate = `integrations > 0` in `product.ts`, i.e. Starter and above per docs/brief.md (Free sees an upgrade notice, API returns `plan_required`). Page `/app/forms/[id]/webhooks`.
+  - **Onboarding:** field linter (12 rules), "Send test submission" ([Test] label, not metered, shows the receipt), troubleshooting email after 3 rejected posts from a blocked origin. Page `/app/forms/[id]/onboarding`.
+  - **Owner emails:** spam burst alert (20 in 10 min, 1 an hour) and usage notices at 80% and 100%, once per period each.
+  - **Retention:** cron `retention-purge` (plan days in `product.ts`, audit entry per workspace) and per-form "delete all submissions". The submissions TTL index became a plain index (D-M3-2).
+  - **Search:** Mongo text index `submissions_search` + matching memory filter (`$text`); `scripts/bench-search.ts`: 100k rows, memory driver, p50 133 ms, p95 164 ms (first query 408 ms builds the token cache). **Mongo benchmark pending** until `MONGODB_URI` is set and `npm run db:indexes` has run; target p95 < 300 ms.
+- **Checks:** lint (0 errors), typecheck, 152 unit tests (no network), build green; Playwright: new `tests/e2e/m3.spec.ts` + the two earlier specs pass (memory driver). Screenshots `docs/qa/m3/{templates,onboarding}-{1440-light,375-dark}.png`.
+- **On deploy:** run `npm run db:indexes` (new text index; the old `purgeAt` TTL index must be dropped first if it exists: `db.submissions.dropIndex("purgeAt_1")`), add `retention-purge` to the Cloudflare worker JOBS (already in wrangler.toml; not added to `vercel.json` because Hobby caps cron jobs, call it daily from the worker or upgrade).
+- **Known gaps:** test submissions are not visibly labelled in the inbox list; word search is whole word (documented in D-M3-1).
+- **Next: M4:** own-mail-server path behind the Mailer interface, founder admin (workspace search, abuse flags, suspend form, plan override, suppression list), domain verification pages, `/status` and canary cron; then M5.
+

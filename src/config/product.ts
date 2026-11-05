@@ -28,6 +28,8 @@ export interface Plan {
   featured?: boolean;
   /** Days of trial. 0 = no trial (Postslot: the Free plan is the trial). */
   trialDays: number;
+  /** Days submissions are kept before the retention purge deletes them (docs/ARCHITECTURE.md section 2). */
+  retentionDays: number;
 }
 
 const slug = "postslot";
@@ -93,6 +95,7 @@ export const product = {
       highlights: ["250 submissions a month, spam never counts", "Unlimited forms and domains", "1 verified recipient", "90 day history, CSV export", "7 day delivery log"],
       cta: "Start free",
       trialDays: 0,
+      retentionDays: 90,
     },
     {
       id: "starter",
@@ -103,6 +106,7 @@ export const product = {
       highlights: ["5,000 submissions a month", "3 recipients", "Webhooks and 1 integration", "6 month history", "Yearly billing only"],
       cta: "Choose Starter",
       trialDays: 0,
+      retentionDays: 180,
     },
     {
       id: "pro",
@@ -114,6 +118,7 @@ export const product = {
       cta: "Choose Pro",
       featured: true,
       trialDays: 0,
+      retentionDays: 365,
     },
     {
       id: "agency",
@@ -124,6 +129,7 @@ export const product = {
       highlights: ["20,000 submissions a month", "Client workspaces", "White label emails", "10 seats, 10 recipients", "Priority support within 24 hours"],
       cta: "Choose Agency",
       trialDays: 0,
+      retentionDays: 365,
     },
   ] satisfies Plan[],
   /** Grace period after a failed payment (past_due keeps the plan, C-20) before limits fall to Free. */
@@ -143,6 +149,8 @@ export const product = {
 
 export type Product = typeof product;
 export const plans: readonly Plan[] = product.plans;
+/** Outbound webhooks are a Starter-and-above feature (docs/brief.md pricing table): plans with at least one integration slot. */
+export const planHasWebhooks = (p: Plan): boolean => p.limits.integrations > 0;
 export const planById = (id: string): Plan | undefined => plans.find((p) => p.id === id);
 export const freePlan = plans.find((p) => p.prices.length === 0) ?? plans[0]!;
 export const allLookupKeys = (): string[] => plans.flatMap((p) => p.prices.map((x) => x.lookupKey));

@@ -23,12 +23,12 @@ export function statusFilter(f: InboxFilter): DocFilter {
 export interface ListOpts { formId?: string; filter?: InboxFilter; q?: string; before?: Date; limit?: number }
 
 export function inboxQuery(orgId: string, o: ListOpts): DocFilter {
-  const q = o.q?.trim().toLowerCase().slice(0, 100);
+  const q = o.q?.trim().slice(0, 100);
   return {
     orgId,
     ...statusFilter(o.filter ?? "all"),
     ...(o.formId ? { formId: o.formId } : {}),
-    ...(q ? { searchText: { $contains: q } } : {}),
+    ...(q ? { searchText: { $text: q } } : {}),
     ...(o.before ? { receivedAt: { $lt: o.before } } : {}),
   };
 }

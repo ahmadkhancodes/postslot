@@ -13,6 +13,13 @@ export const webhooks: DocPage = {
       ],
     },
     {
+      heading: "Submission events (Starter and above)",
+      body: [
+        "On each form, open Webhooks to add an endpoint for that form. Events: submission.received (fields included, sent once a submission passes the spam check), submission.delivered (a recipient's mail server accepted it), submission.bounced (every delivery was returned or failed) and submission.held (over the monthly limit or no confirmed recipient). Spam and quarantined posts send nothing.",
+        "The payload data holds form {id, name} and submission {id, status, receivedAt, isTest}. The delivery log shows every attempt, and Replay sends a logged event again with a new id and a replayOf field.",
+      ],
+    },
+    {
       heading: "Headers",
       body: [
         "Every delivery carries three headers. x-webhook-id is a unique ID for the event, so you can deduplicate. x-webhook-event is the event name. x-webhook-signature proves the request came from us.",

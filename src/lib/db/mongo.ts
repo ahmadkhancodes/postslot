@@ -34,7 +34,10 @@ export function createMongoDb(uri: string, dbName: string, app: string): Db {
   const toMongo = (f: DocFilter): Record<string, unknown> => {
     const out: Record<string, unknown> = { app };
     for (const [k, v] of Object.entries(f)) {
-      if (v && typeof v === "object" && !(v instanceof Date) && "$contains" in v) {
+      if (v && typeof v === "object" && !(v instanceof Date) && "$text" in v) {
+        // Uses the compound text index { app, orgId, searchText: "text" }: callers must also filter on orgId (equality).
+        out.$text = { $search: String((v as { $text: unknown }).$text), $caseSensitive: false, $diacriticSensitive: false };
+      } else if (v && typeof v === "object" && !(v instanceof Date) && "$contains" in v) {
         const { $contains, ...rest } = v as Record<string, unknown>;
         out[k] = { ...rest, $regex: String($contains).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" };
       } else out[k] = v;
@@ -288,7 +291,10 @@ export async function ensureIndexes(uri: string, dbName: string) {
   await d.collection("submissions").createIndex({ app: 1, orgId: 1, status: 1, receivedAt: -1 });
   await d.collection("submissions").createIndex({ app: 1, orgId: 1, emailLower: 1 });
   await d.collection("submissions").createIndex({ status: 1, receivedAt: 1 });
-  await d.collection("submissions").createIndex({ purgeAt: 1 }, { expireAfterSeconds: 0 });
+  // Retention is enforced by the `retention-purge` cron job (it writes an audit entry), not by a TTL index.
+  await d.collection("submissions").createIndex({ purgeAt: 1 });
+  // Inbox search: whole-word text search. default_language "none" = no stemming, emails and names tokenise predictably.
+  await d.collection("submissions").createIndex({ app: 1, orgId: 1, searchText: "text" }, { name: "submissions_search", default_language: "none" });
   await d.collection("deliveries").createIndex({ mailerMessageId: 1 }, { unique: true, sparse: true });
   await d.collection("deliveries").createIndex({ submissionId: 1 });
   await d.collection("deliveries").createIndex({ status: 1, nextAttemptAt: 1 });

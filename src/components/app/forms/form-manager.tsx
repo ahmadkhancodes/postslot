@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/components/app/api";
 import { CopyButton } from "@/components/app/copy-button";
+import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { Panel } from "@/components/app/page-header";
 import { cn } from "@/components/ui/cn";
 import { Button } from "@/components/ui/button";
@@ -138,12 +139,45 @@ function Settings({ form, canWrite }: { form: FormView; canWrite: boolean }) {
   );
 }
 
+function DangerZone({ formId, canWrite }: { formId: string; canWrite: boolean }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<number | null>(null);
+  if (!canWrite) return null;
+  return (
+    <Panel title="Delete all submissions" description="Permanently removes every stored submission of this form, spam and held ones included, with their delivery receipts. The form, its recipients and your monthly count stay.">
+      <div className="flex flex-col gap-3">
+        <div><Button variant="danger" onClick={() => { setError(null); setOpen(true); }}>Delete all submissions</Button></div>
+        {done !== null ? <p role="status" className="caption-2 text-text-subtle">Deleted {done} submission{done === 1 ? "" : "s"}.</p> : null}
+      </div>
+      <ConfirmDialog
+        open={open} title="Delete all submissions?" confirmLabel="Delete everything" typeToConfirm="delete" busy={busy} error={error}
+        onClose={() => setOpen(false)}
+        onConfirm={async () => {
+          setBusy(true);
+          const r = await api<{ deleted: number }>(`/api/forms/${formId}/submissions`, { method: "DELETE" });
+          setBusy(false);
+          if (!r.ok) return setError(r.message);
+          setDone(r.data.deleted);
+          setOpen(false);
+          router.refresh();
+        }}
+      >
+        This cannot be undone.
+      </ConfirmDialog>
+    </Panel>
+  );
+}
+
 export function FormManager({ form, endpoint, recipients, snippets, canWrite }: { form: FormView; endpoint: string; recipients: RecipientView[]; snippets: Snippet[]; canWrite: boolean }) {
   return (
     <div className="flex flex-col gap-6">
       <SnippetPicker endpoint={endpoint} snippets={snippets} />
       <Recipients formId={form.id} recipients={recipients} canWrite={canWrite} />
       <Settings form={form} canWrite={canWrite} />
+      <DangerZone formId={form.id} canWrite={canWrite} />
     </div>
   );
 }

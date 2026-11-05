@@ -17,6 +17,7 @@ export const FormPatch = z.object({
   spamMode: z.enum(["standard", "strict", "off"]).optional(),
   spamThreshold: z.number().min(0.3).max(0.95).optional(),
   subjectTemplate: z.string().max(200).optional(),
+  template: z.enum(["default", "compact", "plain"]).optional(),
   rules: z.object({
     maxLinks: z.number().int().min(0).max(50),
     blockedPhrases: z.array(z.string().trim().min(1).max(80)).max(100),

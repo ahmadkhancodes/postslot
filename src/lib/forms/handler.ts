@@ -6,6 +6,7 @@ import { processSubmission } from "@/lib/delivery/process";
 import type { Deps } from "@/lib/delivery/dispatch";
 import type { Db } from "@/lib/db/types";
 import { env } from "@/lib/env";
+import { checkSpamBurst, troubleshootBlockedOrigin } from "@/lib/notices";
 import { clientIp } from "@/lib/http";
 import { hmacSha256Hex, uuidv7 } from "@/lib/ids";
 import { log } from "@/lib/logger";
@@ -62,6 +63,7 @@ export async function handleFormPost(db: Db, req: Request, key: string, deps: De
     const origin = requestOrigin(req);
     if (!originAllowed(form.allowedOrigins, origin)) {
       await db.docs<Form>("forms").update({ _id: form._id }, { lastBlockedAt: new Date(), lastBlockedOrigin: (origin ?? "none").slice(0, 200) }, { inc: { blockedCount: 1 } });
+      await troubleshootBlockedOrigin(db, { ...form, blockedCount: form.blockedCount + 1 }, (origin ?? "none").slice(0, 200), deps).catch((e) => log.warn("troubleshoot_failed", { message: (e as Error).message }));
       return fail(asJson, 403, "domain_mismatch");
     }
 
@@ -96,6 +98,7 @@ export async function handleFormPost(db: Db, req: Request, key: string, deps: De
     if (n.honeypotFilled) {
       await countSpam(db, sub.orgId, now);
       await recordEvent(db, { orgId: sub.orgId, submissionId: id, type: "sorted", at: now, detail: "quarantined as spam (honeypot)" });
+      await checkSpamBurst(db, form, deps).catch((e) => log.warn("spam_burst_failed", { message: (e as Error).message }));
     } else background = () => processSubmission(db, id, deps).catch((e) => log.error("process_failed", { message: (e as Error).message }));
 
     if (json) return { response: new Response(JSON.stringify({ success: true, id, message: "Submission received" }), { status: 200, headers: { ...BASE_HEADERS, "content-type": "application/json" } }), background };

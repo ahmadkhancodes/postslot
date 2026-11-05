@@ -200,7 +200,7 @@ describe("metering and held submissions", () => {
     expect(s).toMatchObject({ status: "held", holdReason: "over_limit" });
     expect(await db.getUsage(ORG, "submissions", periodOf())).toBe(250);
     expect(await db.getUsage(ORG, "held", periodOf())).toBe(1);
-    expect(tx.sent).toHaveLength(0);
+    expect(tx.sent.filter((m) => m.tags?.kind !== "usage_notice")).toHaveLength(0); // the 100% notice is the only mail
     expect(await redeliver(db, s!._id, ORG, { transport: tx.t })).toBe("held_over_limit");
 
     expect(await releaseHeld(db, ORG, { transport: tx.t })).toBe(0); // still no room
@@ -208,7 +208,7 @@ describe("metering and held submissions", () => {
     expect(await releaseHeld(db, ORG, { transport: tx.t })).toBe(1);
     expect((await db.docs<Submission>("submissions").get(s!._id))!.status).toBe("dispatched");
     expect(await db.getUsage(ORG, "submissions", periodOf())).toBe(251);
-    expect(tx.sent).toHaveLength(1);
+    expect(tx.sent.filter((m) => m.tags?.kind !== "usage_notice")).toHaveLength(1);
   });
 
   it("a new month releases held submissions through the cron job, oldest first, only as far as the limit allows", async () => {

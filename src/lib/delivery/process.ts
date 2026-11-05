@@ -7,6 +7,11 @@ import { periodOf } from "@/lib/billing/usage";
 import { dispatchSubmission, retryQueued, type Deps } from "./dispatch";
 import { recomputeSubmissionStatus, recordEvent, suppressionScope } from "./events";
 import type { Delivery, Recipient } from "@/lib/forms/types";
+import { log } from "@/lib/logger";
+import { checkSpamBurst, checkUsageNotices } from "@/lib/notices";
+import { emitSubmissionEvent } from "@/lib/webhooks/submissions";
+
+const soft = <T,>(p: Promise<T>, what: string) => p.catch((e) => { log.warn(`${what}_failed`, { message: (e as Error).message }); return undefined; });
 
 const subs = (db: Db) => db.docs<Submission>("submissions");
 
@@ -14,7 +19,10 @@ const subs = (db: Db) => db.docs<Submission>("submissions");
 async function dispatchOrHold(db: Db, form: Form, sub: Submission, deps: Deps): Promise<Submission> {
   const sent = await dispatchSubmission(db, form, sub, deps);
   if (sent) await subs(db).update({ _id: sub._id }, { holdReason: undefined });
-  else await subs(db).update({ _id: sub._id }, { status: "held", holdReason: "recipient_unverified" });
+  else {
+    await subs(db).update({ _id: sub._id }, { status: "held", holdReason: "recipient_unverified" });
+    if (sub.status !== "held") await emitSubmissionEvent(db, form, { ...sub, status: "held", holdReason: "recipient_unverified" }, "submission.held", deps);
+  }
   return (await subs(db).get(sub._id))!;
 }
 
@@ -25,10 +33,14 @@ async function meterAndRoute(db: Db, form: Form, sub: Submission, deps: Deps): P
     if (!(await admit(db, sub.orgId, now))) {
       await countHeld(db, sub.orgId, now);
       await subs(db).update({ _id: sub._id }, { status: "held", holdReason: "over_limit" });
+      await soft(checkUsageNotices(db, sub.orgId, deps), "usage_notice");
+      // The cron retries held rows every minute: announce the hold once, when the submission first becomes held.
+      if (sub.status !== "held") await emitSubmissionEvent(db, form, { ...sub, status: "held", holdReason: "over_limit" }, "submission.held", deps);
       return (await subs(db).get(sub._id))!;
     }
     await subs(db).update({ _id: sub._id }, { metered: true });
     sub = { ...sub, metered: true };
+    await soft(checkUsageNotices(db, sub.orgId, deps), "usage_notice");
   }
   return dispatchOrHold(db, form, { ...sub, holdReason: undefined }, deps);
 }
@@ -46,11 +58,13 @@ export async function processSubmission(db: Db, id: string, deps: Deps = {}): Pr
   if (v.spam) {
     await subs(db).update({ _id: id }, { status: "quarantined" });
     await countSpam(db, sub.orgId, now);
+    await soft(checkSpamBurst(db, form, deps), "spam_burst");
     await recordEvent(db, { orgId: sub.orgId, submissionId: id, type: "sorted", at: now, detail: `quarantined as spam (${v.signals.filter((s) => s.weight > 0).map((s) => s.name).join(", ") || "score"})` });
     return (await subs(db).get(id))!;
   }
   await subs(db).update({ _id: id }, { status: "sorted" });
   await recordEvent(db, { orgId: sub.orgId, submissionId: id, type: "sorted", at: now, detail: v.scored ? "not spam" : "not spam (unscored: content check skipped)" });
+  await emitSubmissionEvent(db, form, { ...sorted, status: "sorted" }, "submission.received", deps);
   return meterAndRoute(db, form, { ...sorted, status: "sorted" }, deps);
 }
 
@@ -132,7 +146,7 @@ export async function deliverPending(db: Db, deps: Deps = {}) {
   for (const d of old) {
     await db.docs<Delivery>("deliveries").update({ _id: d._id }, { status: "returned" });
     await recordEvent(db, { orgId: d.orgId, submissionId: d.submissionId, deliveryId: d._id, type: "expired", at: now, detail: "no acceptance after 3 days of retries" });
-    await recomputeSubmissionStatus(db, d.submissionId);
+    await recomputeSubmissionStatus(db, d.submissionId, deps);
   }
   const heldOrgs = [...new Set((await subs(db).find({ status: "held", holdReason: "over_limit" }, { limit: 500, sort: { receivedAt: 1 } })).map((s) => s.orgId))];
   let released = 0;

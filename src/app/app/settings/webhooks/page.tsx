@@ -1,12 +1,13 @@
 import { PageHeader } from "@/components/app/page-header";
 import { can } from "@/lib/auth/roles";
 import { requireOrg } from "@/lib/auth/session";
+import { SUBMISSION_EVENTS } from "@/lib/webhooks/submissions";
 import { WebhooksClient } from "./webhooks-client";
 
 export const metadata = { title: "Webhooks" };
 
 /** Event names offered in the create form. A product adds its own events here. */
-const EVENTS = ["*", "billing.updated", "member.invited", "test.ping"];
+const EVENTS = ["*", ...SUBMISSION_EVENTS, "billing.updated", "member.invited", "test.ping"];
 
 export default async function WebhooksPage() {
   const ctx = await requireOrg({ page: true });
