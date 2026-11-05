@@ -20,8 +20,8 @@ export function CompareTable({
   caption, rowHeader = "Feature", columns, rows, highlightColumn,
 }: { caption: ReactNode; rowHeader?: string; columns: string[]; rows: CompareRow[]; highlightColumn?: number }) {
   return (
-    <div role="region" aria-label="Comparison table, scrolls sideways on small screens" tabIndex={0} className="overflow-x-auto rounded-lg border border-border focus-visible:focus-ring">
-      <table className="w-full min-w-[32rem] border-collapse text-left">
+    <div role="region" aria-label="Comparison table, scrolls sideways on small screens" tabIndex={0} className="relative overflow-x-auto rounded-lg border border-border focus-visible:focus-ring">
+      <table className="w-full min-w-lg border-collapse text-left">
         <caption className="sr-only">{caption}</caption>
         <thead>
           <tr className="border-b border-border-strong">

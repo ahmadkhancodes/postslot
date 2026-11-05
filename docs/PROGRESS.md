@@ -25,3 +25,9 @@
 - Deploy ONLY with VERCEL_TOKEN_NEW_ACCOUNT via `scripts/deploy.sh` (the Vercel MCP connector is the OLD account).
 - Session git proxy blocks tag pushes: use the "Create tag" workflow (`.github/workflows/tag.yml`).
 - Disabling Vercel deployment protection via API was denied by the permission classifier; not needed (production alias is public).
+
+## 5 Nov 2026 (M1 code done, deploy pending)
+- M1 storefront built on the kit, per approved design: violet tokens + Geist in globals.css/fonts.ts, plans and meter in product.ts, landing (hero inbox with postmark receipt, stat strip, explainer + install snippet, bento, steps, tagline, comparison, pricing, FAQ), `/pricing` (annual default, add ons, dated Web3Forms line), `/compare/web3forms`, docs install snippets + llms.txt, legal pass.
+- QA: screenshots in docs/qa/m1/, scorecard docs/design-qa.md (44/50), no horizontal overflow. lint, typecheck, 45 unit tests, build and Playwright e2e green.
+- Manual: legal placeholders listed in docs/MANUAL_STEPS.md item 3.
+- **NOT deployed** (per task). Next: deploy via scripts/deploy.sh, then M2 per docs/ROADMAP.md (form ingest `/f/<form_key>`, inbox, receipts).

@@ -2,28 +2,27 @@
 
 /*
  * Universal kit tokens (docs/factory/DESIGN_PLAYBOOK.md §3, §5, §6).
- * PLACEHOLDER THEME: deliberately plain greys + one muted accent. Each product replaces ONLY the
- * values in the two `:root` blocks below (from its docs/DESIGN.md). Components reference role tokens only.
+ * Postslot theme (docs/DESIGN.md): cool neutrals + postmark violet. Components reference role tokens only.
  */
 :root {
   --font-sans-family: var(--font-kit-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono-family: var(--font-kit-mono), ui-monospace, monospace;
 
-  /* raw ramp (neutral 00..1000) */
+  /* raw ramp: Postslot cool neutral (docs/DESIGN.md section 6) */
   --n-0: #ffffff;
-  --n-50: #f7f7f7;
-  --n-100: #efefef;
-  --n-200: #e2e2e2;
-  --n-300: #cfcfcf;
-  --n-400: #a3a3a3;
-  --n-500: #767676;
-  --n-600: #5c5c5c;
-  --n-700: #404040;
-  --n-800: #272727;
-  --n-900: #181818;
+  --n-50: #f6f6f8;
+  --n-100: #eeeef1;
+  --n-200: #e1e2e6;
+  --n-300: #c9cbd1;
+  --n-400: #a1a4ac;
+  --n-500: #6b6e76;
+  --n-600: #55585f;
+  --n-700: #3d4047;
+  --n-800: #272a30;
+  --n-900: #17181c;
   --n-1000: #000000;
-  --accent-500: #3d5a80; /* placeholder accent, <80% saturation */
-  --accent-600: #2f4766;
+  --accent-500: #6b3fc4; /* postmark violet */
+  --accent-600: #5e34b1;
 
   /* role tokens: light */
   --surface: var(--n-0);
@@ -35,17 +34,22 @@
   --text-muted: var(--n-500);
   --text-inverse: var(--n-0);
   --border: var(--n-200);
-  --border-strong: var(--n-300);
+  --border-strong: #8a8d96;
   --action: var(--accent-500);
   --action-hover: var(--accent-600);
   --action-text: #ffffff;
-  --focus: var(--accent-500);
-  --success: #2f7a4a;
-  --success-surface: #ecf6ef;
+  --action-surface: #f1ecfb;
+  --focus: var(--n-900);
+  --success: #1f7a3a;
+  --success-surface: #e8f5ec;
   --warning: #8a5a00;
-  --warning-surface: #fdf5e4;
+  --warning-surface: #fdf3dc;
   --danger: #b3261e;
-  --danger-surface: #fcecea;
+  --danger-surface: #fcebea;
+  --code-bg: #17181c;
+  --code-text: #e9eaee;
+  --code-accent: #b49af0;
+  --code-muted: #9a9da6;
   --hero-from: #000000;
   --hero-to: #666666;
   --shadow-color: 0 0% 0%;
@@ -59,20 +63,25 @@
   --surface-inverse: var(--n-50);
   --text: #f2f2f2;
   --text-subtle: #b4b4b4;
-  --text-muted: #8f8f8f;
-  --text-inverse: var(--n-900);
+  --text-muted: #949494;
+  --text-inverse: #181818;
   --border: #313131;
-  --border-strong: #404040;
-  --action: #8fa9cc;
-  --action-hover: #a9bfdc;
-  --action-text: #0b1320;
-  --focus: #8fa9cc;
+  --border-strong: #707070;
+  --action: #b49af0;
+  --action-hover: #c6b2f5;
+  --action-text: #1a1030;
+  --action-surface: #241c38;
+  --focus: #f2f2f2;
   --success: #6fcf8f;
   --success-surface: #13261a;
   --warning: #e7b85a;
   --warning-surface: #2a210e;
-  --danger: #f2877e;
-  --danger-surface: #2c1513;
+  --danger: #f2766e;
+  --danger-surface: #331513;
+  --code-bg: #000000;
+  --code-text: #e6e6e6;
+  --code-accent: #b49af0;
+  --code-muted: #949494;
   --hero-from: #ffffff;
   --hero-to: #9b9b9b;
   --shadow-color: 0 0% 0%;
@@ -103,6 +112,11 @@
   --color-action: var(--action);
   --color-action-hover: var(--action-hover);
   --color-action-text: var(--action-text);
+  --color-action-surface: var(--action-surface);
+  --color-code-bg: var(--code-bg);
+  --color-code-text: var(--code-text);
+  --color-code-accent: var(--code-accent);
+  --color-code-muted: var(--code-muted);
   --color-focus: var(--focus);
   --color-success: var(--success);
   --color-success-surface: var(--success-surface);
@@ -200,3 +214,8 @@
   .kit-word { opacity: 1; transition: none; }
   *, *::before, *::after { animation-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Postmark press: once, 500ms, transform + opacity. Static when motion is reduced. */
+.kit-postmark { transform: rotate(-8deg); animation: kit-press 500ms var(--ease-out-kit) both; }
+@keyframes kit-press { from { opacity: 0; transform: scale(1.06) rotate(-8deg); } to { opacity: 1; transform: scale(1) rotate(-8deg); } }
+@media (prefers-reduced-motion: reduce) { .kit-postmark { animation: none; opacity: 1; } }

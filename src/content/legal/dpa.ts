@@ -19,7 +19,7 @@ export const dpa: LegalDoc = {
       body: [
         {
           list: [
-            "Subject matter: receiving, storing, filtering and delivering form submissions.",
+            "Subject matter: receiving, storing, filtering and delivering form submissions, and recording a delivery receipt for each one.",
             "Duration: while your account is open, plus the deletion period in the privacy policy.",
             "Data subjects: people who submit your forms.",
             "Data types: whatever fields and files your forms collect, plus IP address and user agent for spam checks.",

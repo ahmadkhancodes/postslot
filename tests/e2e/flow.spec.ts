@@ -48,7 +48,7 @@ test("magic link sign-in, org, billing state, api key, cron guard", async ({ pag
 
 test("public pages render with metadata and no horizontal overflow at 375px", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  for (const path of ["/", "/pricing", "/docs", "/legal/privacy", "/sign-in"]) {
+  for (const path of ["/", "/pricing", "/compare/web3forms", "/docs", "/legal/privacy", "/sign-in"]) {
     const res = await page.goto(path);
     expect(res?.status(), path).toBe(200);
     await expect(page.locator("title")).not.toBeEmpty();
@@ -57,4 +57,18 @@ test("public pages render with metadata and no horizontal overflow at 375px", as
   expect((await page.goto("/nope-404"))?.status()).toBe(404);
   expect((await page.request.get("/api/health")).ok()).toBeTruthy();
   expect(await (await page.request.get("/llms.txt")).text()).toContain("Postslot");
+});
+
+test("landing shows the inbox with its delivery receipt, labelled as sample data", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Every form submission delivered");
+  await expect(page.getByRole("img", { name: /Postmark: delivered 14:02:07/ }).first()).toBeVisible();
+  await expect(page.getByText("Sample data. Names and addresses are fictional.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Create a form" }).first()).toHaveAttribute("href", "/sign-in");
+  await expect(page.locator("#pricing")).toContainText("$74");
+
+  await page.goto("/pricing");
+  await expect(page.getByRole("button", { name: "Annual" })).toHaveAttribute("aria-pressed", "true");
+  await page.goto("/compare/web3forms");
+  await expect(page.getByText("Checked 3 Nov 2026 from public pages")).toBeVisible();
 });

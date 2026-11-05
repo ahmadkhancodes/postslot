@@ -6,7 +6,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: "Documentation",
-  description: `Guides and reference for the ${product.name} API, authentication, billing and webhooks.`,
+  description: `Install snippets for every stack, plus guides and reference for the ${product.name} API, authentication, billing and webhooks.`,
   path: "/docs",
 });
 

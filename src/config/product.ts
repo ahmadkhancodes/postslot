@@ -62,7 +62,23 @@ export const product = {
     { name: "Vercel Inc.", purpose: "Hosting and edge network", location: "United States" },
     { name: "MongoDB Inc. (Atlas)", purpose: "Database hosting", location: "United States (AWS us-east-1)" },
     { name: "Stripe Inc.", purpose: "Payments and invoicing", location: "United States" },
-    { name: "Email delivery provider", purpose: "Transactional email until our own mail servers are live", location: "United States" },
+    { name: "Email delivery provider", purpose: "Sending notification and receipt emails", location: "United States" },
+  ],
+  /** The metered unit and what happens at the cap (docs/brief.md Pricing). */
+  meter: {
+    unit: "submissions per month",
+    countsSpam: false,
+    countsTests: false,
+    /** Soft cap: legitimate submissions over the limit are held, not rejected. */
+    overLimit: "held" as "held" | "rejected",
+    warnAtPercent: [80, 100],
+  },
+  /** Monthly add-ons in cents (docs/brief.md). */
+  addOns: [
+    { id: "seat", name: "Extra seat", usdPerMonth: 249 },
+    { id: "storage", name: "10 GB more file storage", usdPerMonth: 149 },
+    { id: "white_label", name: "White label emails on Pro", usdPerMonth: 449 },
+    { id: "recipients", name: "25 more recipient emails", usdPerMonth: 249 },
   ],
   currency: "usd" as const,
   /** Default billing interval shown first in the pricing toggle. */
@@ -74,7 +90,7 @@ export const product = {
       tagline: "For one site and a first form",
       prices: [],
       limits: { submissions: 250, seats: 1, recipients: 1, integrations: 0, storage_mb: 0 },
-      highlights: ["250 submissions a month, spam never counts", "Unlimited forms and domains", "1 verified recipient", "90 day history"],
+      highlights: ["250 submissions a month, spam never counts", "Unlimited forms and domains", "1 verified recipient", "90 day history, CSV export", "7 day delivery log"],
       cta: "Start free",
       trialDays: 0,
     },
@@ -84,7 +100,7 @@ export const product = {
       tagline: "For freelancers with a few client sites",
       prices: [price("starter", "year", 2400)],
       limits: { submissions: 5000, seats: 1, recipients: 3, integrations: 1, storage_mb: 0 },
-      highlights: ["5,000 submissions a month", "3 recipients", "Webhooks and 1 integration", "6 month history"],
+      highlights: ["5,000 submissions a month", "3 recipients", "Webhooks and 1 integration", "6 month history", "Yearly billing only"],
       cta: "Choose Starter",
       trialDays: 0,
     },
@@ -94,7 +110,7 @@ export const product = {
       tagline: "For developers who need proof of delivery",
       prices: [price("pro", "month", 749), price("pro", "year", 7400)],
       limits: { submissions: 10000, seats: 3, recipients: 5, integrations: 5, storage_mb: 5120 },
-      highlights: ["10,000 submissions a month", "Custom sending domain", "90 day delivery log", "Autoresponder and file uploads", "3 seats"],
+      highlights: ["10,000 submissions a month", "Custom sending domain", "90 day delivery log", "Autoresponder and file uploads", "Webhooks and 5 integrations", "3 seats, 1 year history"],
       cta: "Choose Pro",
       featured: true,
       trialDays: 0,
@@ -105,7 +121,7 @@ export const product = {
       tagline: "For studios running many client sites",
       prices: [price("agency", "month", 1949), price("agency", "year", 19900)],
       limits: { submissions: 20000, seats: 10, recipients: 10, integrations: 10, storage_mb: 10240 },
-      highlights: ["20,000 submissions a month", "Client workspaces", "White label emails", "10 seats", "Priority support"],
+      highlights: ["20,000 submissions a month", "Client workspaces", "White label emails", "10 seats, 10 recipients", "Priority support within 24 hours"],
       cta: "Choose Agency",
       trialDays: 0,
     },
@@ -121,6 +137,7 @@ export const product = {
   nav: [
     { href: "/pricing", label: "Pricing" },
     { href: "/docs", label: "Docs" },
+    { href: "/compare/web3forms", label: "Compare" },
   ],
 } as const;
 

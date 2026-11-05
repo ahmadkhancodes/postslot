@@ -60,7 +60,7 @@ export const privacy: LegalDoc = {
         {
           list: [
             "Account and organization data is kept while your account is open.",
-            "Submissions are kept for the history period of your plan, then deleted.",
+            "Submissions and their delivery receipts are kept for the history period of your plan (90 days on Free, 6 months on Starter, 1 year on Pro), then deleted. Held submissions are kept until released or until that period ends.",
             "After you delete your account we remove your data within 30 days, except billing records we must keep by law, which are kept for the period the law requires.",
             "Server logs are kept for up to 30 days.",
             "Backups roll off within 35 days after deletion.",
