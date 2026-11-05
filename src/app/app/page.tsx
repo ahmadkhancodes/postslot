@@ -1,55 +1,162 @@
+import { DownloadSimple, MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { Meter } from "@/components/app/meter";
-import { METERS_SHOWN } from "@/components/app/labels";
-import { PageHeader, Panel } from "@/components/app/page-header";
+import { PageHeader } from "@/components/app/page-header";
+import { SubmissionDetail } from "@/components/app/inbox/submission-detail";
+import { chipFor, previewOf, senderOf, shortWhen } from "@/components/app/inbox/status";
+import { StatusChip } from "@/components/marketing/demo/receipt";
 import { buttonClass } from "@/components/ui/button";
-import { Badge, EmptyState } from "@/components/ui/states";
+import { cn } from "@/components/ui/cn";
+import { Input, Select } from "@/components/ui/field";
+import { EmptyState, Notice } from "@/components/ui/states";
+import { can } from "@/lib/auth/roles";
 import { requireOrg } from "@/lib/auth/session";
-import { effectivePlan } from "@/lib/billing/entitlement";
 import { currentUsage } from "@/lib/billing/usage";
 import { getDb } from "@/lib/db";
+import type { Form, Recipient } from "@/lib/forms/types";
+import { FILTER_LABEL, INBOX_FILTERS, filterCounts, getDetail, listSubmissions, parseFilter } from "@/lib/inbox/query";
 
-export const metadata = { title: "Overview" };
+export const metadata = { title: "Inbox" };
+export const dynamic = "force-dynamic";
 
-export default async function OverviewPage() {
+type SP = Promise<Record<string, string | string[] | undefined>>;
+const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+
+export default async function InboxPage({ searchParams }: { searchParams: SP }) {
+  const sp = await searchParams;
   const ctx = await requireOrg({ page: true });
   const db = await getDb();
-  const ent = await db.getEntitlement(ctx.org.id);
-  const plan = effectivePlan(ent);
-  const usage = await currentUsage(db, ctx.org.id, METERS_SHOWN);
+  const filter = parseFilter(one(sp.filter));
+  const q = one(sp.q)?.slice(0, 100) ?? "";
+  const formId = one(sp.form) || undefined;
+  const selected = one(sp.id);
+  const [forms, recipients, rows, counts, usage] = await Promise.all([
+    db.docs<Form>("forms").find({ orgId: ctx.org.id }, { sort: { createdAt: -1 }, limit: 200 }),
+    db.docs<Recipient>("recipients").find({ orgId: ctx.org.id }),
+    listSubmissions(db, ctx.org.id, { filter, q, formId, limit: 50 }),
+    filterCounts(db, ctx.org.id, formId),
+    currentUsage(db, ctx.org.id, ["submissions"]),
+  ]);
+  const detail = selected ? await getDetail(db, ctx.org.id, selected) : null;
+  const canWrite = can(ctx.role, "data", "write");
+  const bounced = recipients.filter((r) => r.bouncedAt);
+  const unconfirmed = recipients.filter((r) => !r.verifiedAt);
+
+  const href = (over: Record<string, string | undefined>) => {
+    const p = new URLSearchParams();
+    const cur: Record<string, string | undefined> = { filter: filter === "all" ? undefined : filter, q: q || undefined, form: formId, ...over };
+    for (const [k, v] of Object.entries(cur)) if (v) p.set(k, v);
+    const s = p.toString();
+    return s ? `/app?${s}` : "/app";
+  };
+  const exportQs = new URLSearchParams({ ...(formId ? { form: formId } : {}), ...(filter !== "all" ? { filter } : {}), ...(q ? { q } : {}) }).toString();
+
+  if (!forms.length)
+    return (
+      <>
+        <PageHeader title="Inbox" description="Every submission, with the receipt that shows where it went." />
+        <EmptyState
+          title="Create your first form"
+          body="A form is one endpoint URL. Point your HTML form at it, confirm your email address, and submissions show up here with a delivery receipt."
+          action={<Link href="/app/forms" className={buttonClass("primary")}>Create a form</Link>}
+        />
+      </>
+    );
+
   return (
     <>
-      <PageHeader title={ctx.org.name} description={`Signed in as ${ctx.user.email}.`} />
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section aria-labelledby="plan-h" className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-6">
-          <div className="flex items-center justify-between gap-2">
-            <h2 id="plan-h" className="title-4 text-text-subtle">Current plan</h2>
-            {ent?.status === "past_due" ? <Badge tone="warning">Payment failed</Badge> : ent?.cancelAtPeriodEnd ? <Badge tone="warning">Ends soon</Badge> : <Badge tone="success">Active</Badge>}
-          </div>
-          <p className="heading-4 text-text">{plan.name}</p>
-          <p className="body-6 text-text-subtle">{plan.tagline}</p>
-          <Link href="/app/billing" className={buttonClass("secondary", "md", "self-start")}>
-            {plan.id === "free" ? "See plans" : "Manage plan"}
-          </Link>
-        </section>
-        <section aria-labelledby="usage-h" className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-6 lg:col-span-2">
-          <h2 id="usage-h" className="title-4 text-text-subtle">Usage</h2>
-          <div className="flex flex-col gap-6">
-            {usage.map((u) => <Meter key={u.meter} state={u} />)}
-          </div>
-        </section>
+      <PageHeader
+        title="Inbox"
+        description="Every submission, with the receipt that shows where it went."
+        actions={
+          <>
+            <a href={`/api/submissions/export${exportQs ? `?${exportQs}` : ""}`} className={buttonClass("secondary", "md")}><DownloadSimple size={20} aria-hidden /> Export CSV</a>
+            <Link href="/app/forms" className={buttonClass("primary", "md")}>Forms</Link>
+          </>
+        }
+      />
+      <div className="flex flex-col gap-3">
+        {bounced.map((r) => (
+          <Notice key={r._id} tone="danger" title={`We couldn't deliver to ${r.email}`} action={<Link href="/app/forms" className={buttonClass("secondary", "sm")}>Fix it</Link>}>
+            {r.bounceDetail ?? "The address was rejected."} Fix the address or confirm it exists, then press Redeliver on a submission.
+          </Notice>
+        ))}
+        {unconfirmed.length ? (
+          <Notice tone="warning" title="Confirm your recipient address">
+            We emailed a link to {unconfirmed.map((r) => r.email).join(", ")}. Submissions wait here until it is confirmed; nothing is sent to an unconfirmed address.
+          </Notice>
+        ) : null}
+        {usage[0] ? <div className="max-w-md"><Meter state={usage[0]} /></div> : null}
       </div>
-      <Panel title="Workspace" description="Where your product's main screen lives.">
-        <EmptyState
-          title="Your product's main screen goes here"
-          body={
+
+      <form method="get" action="/app" role="search" className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        {filter !== "all" ? <input type="hidden" name="filter" value={filter} /> : null}
+        <div className="relative min-w-0 flex-1">
+          <MagnifyingGlass size={18} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+          <Input name="q" defaultValue={q} placeholder="Search names, emails and messages" aria-label="Search submissions" className="pl-10" />
+        </div>
+        <div className="sm:w-56 sm:shrink-0">
+          <Select name="form" defaultValue={formId ?? ""} aria-label="Form">
+            <option value="">All forms</option>
+            {forms.map((f) => <option key={f._id} value={f._id}>{f.name}</option>)}
+          </Select>
+        </div>
+        <button type="submit" className={buttonClass("secondary", "md")}>Search</button>
+      </form>
+
+      <nav aria-label="Filter" className="-mx-1 flex gap-1 overflow-x-auto px-1">
+        {INBOX_FILTERS.map((f) => (
+          <Link
+            key={f}
+            href={href({ filter: f === "all" ? undefined : f, id: undefined })}
+            aria-current={f === filter ? "page" : undefined}
+            className={cn("inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md px-3 body-5 transition-colors duration-300 focus-visible:focus-ring", f === filter ? "bg-surface-sunken text-text" : "text-text-subtle hover:bg-surface-raised hover:text-text")}
+          >
+            {FILTER_LABEL[f]} <span className="font-mono text-xs text-text-muted">{counts[f]}</span>
+          </Link>
+        ))}
+      </nav>
+
+      <div className="grid gap-6 lg:grid-cols-5">
+        <section aria-label="Submissions" className={cn("flex flex-col lg:col-span-2", detail ? "hidden lg:flex" : "")}>
+          {rows.length ? (
+            <ul className="flex flex-col overflow-hidden rounded-lg border border-border bg-surface">
+              {rows.map((s) => (
+                <li key={s._id} className="border-b border-border last:border-b-0">
+                  <Link
+                    href={href({ id: s._id })}
+                    aria-current={s._id === selected ? "true" : undefined}
+                    className={cn("flex min-h-11 flex-col gap-1 p-4 transition-colors duration-300 hover:bg-surface-raised focus-visible:focus-ring", s._id === selected && "bg-surface-raised")}
+                  >
+                    <span className="flex items-baseline justify-between gap-3">
+                      <span className="title-4 truncate text-text">{senderOf(s)}</span>
+                      <span className="shrink-0 font-mono text-xs text-text-muted">{shortWhen(s.receivedAt)}</span>
+                    </span>
+                    <span className="caption-2 line-clamp-2 text-text-subtle">{previewOf(s)}</span>
+                    <span><StatusChip status={chipFor(s)} /></span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState
+              title={q ? "No submissions match your search" : filter === "spam" ? "No spam caught" : "No submissions yet"}
+              body={q ? "Try fewer words or switch the filter to All." : "Submit your form once to see it here with its receipt. The install snippet is on the form's page."}
+              action={<Link href="/app/forms" className={buttonClass("secondary")}>Open forms</Link>}
+            />
+          )}
+        </section>
+        <div className={cn("flex flex-col gap-3 lg:col-span-3", detail ? "" : "hidden lg:flex")}>
+          {detail ? (
             <>
-              This page is the signed-in home. Replace <code>src/app/app/page.tsx</code> with the screen people use every day, and keep the plan and usage cards above it or move them to the sidebar. Start with the one task a new member must finish to get value, and teach it here before they see anything else.
+              <Link href={href({ id: undefined })} className={cn(buttonClass("tertiary", "md", "self-start"), "lg:hidden")}>Back to inbox</Link>
+              <SubmissionDetail d={detail} canWrite={canWrite} />
             </>
-          }
-          action={<Link href="/app/settings/members" className={buttonClass("primary")}>Invite a teammate</Link>}
-        />
-      </Panel>
+          ) : (
+            <div className="hidden rounded-lg border border-dashed border-border-strong p-8 body-6 text-text-subtle lg:block">Select a submission to see its message, spam signals and delivery receipt.</div>
+          )}
+        </div>
+      </div>
     </>
   );
 }

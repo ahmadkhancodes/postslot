@@ -1,5 +1,6 @@
 import { emitEvent } from "@/lib/webhooks/outbound";
 import { handleStripeWebhook } from "@/lib/billing/webhook";
+import { releaseHeld } from "@/lib/delivery/process";
 import { getStripe } from "@/lib/billing/stripe";
 import { getDb } from "@/lib/db";
 import { env } from "@/lib/env";
@@ -22,6 +23,8 @@ export async function POST(req: Request) {
       secret,
       onChange: async (orgId, type) => {
         const ent = await db.getEntitlement(orgId);
+        // A plan change can make room under the cap: release over-limit submissions that were held.
+        await releaseHeld(db, orgId).catch((e: Error) => log.error("release_held_failed", { message: e.message }));
         await emitEvent(orgId, "billing.updated", { stripeEvent: type, plan: ent?.plan, status: ent?.status }, { db }).catch(() => []);
       },
     });

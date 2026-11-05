@@ -1,13 +1,15 @@
 import { CheckCircle, Clock, ProhibitInset, WarningOctagon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/components/ui/cn";
 
-export type SubmissionStatus = "Delivered" | "Spam blocked" | "Held over limit" | "Returned";
+export type SubmissionStatus = "Delivered" | "Spam blocked" | "Held over limit" | "Returned" | "In transit" | "Held, address unconfirmed";
 
 const chip: Record<SubmissionStatus, { cls: string; Icon: typeof CheckCircle }> = {
   Delivered: { cls: "border-action text-action bg-action-surface", Icon: CheckCircle },
   "Spam blocked": { cls: "border-border-strong text-text-subtle bg-surface", Icon: ProhibitInset },
   "Held over limit": { cls: "border-warning text-warning bg-warning-surface", Icon: Clock },
   Returned: { cls: "border-danger text-danger bg-danger-surface", Icon: WarningOctagon },
+  "In transit": { cls: "border-border-strong text-text-subtle bg-surface", Icon: Clock },
+  "Held, address unconfirmed": { cls: "border-warning text-warning bg-warning-surface", Icon: Clock },
 };
 
 /** Status is always an icon plus words, never colour alone. */
@@ -36,7 +38,7 @@ export function Timeline({ steps }: { steps: TimelineStep[] }) {
         const deferred = s.state === "deferred";
         const Icon = deferred ? Clock : CheckCircle;
         return (
-          <li key={s.name} className="relative flex gap-3 pb-3 last:pb-0">
+          <li key={`${s.name}-${i}`} className="relative flex gap-3 pb-3 last:pb-0">
             {i < steps.length - 1 ? <span aria-hidden className="absolute bottom-0 left-2 top-5 w-px bg-border" /> : null}
             <Icon size={16} weight="regular" aria-hidden className={cn("relative mt-0.5 shrink-0 bg-surface", deferred ? "text-warning" : "text-action")} />
             <div className="flex min-w-0 flex-col">

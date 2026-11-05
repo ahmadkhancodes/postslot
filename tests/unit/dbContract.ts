@@ -102,5 +102,46 @@ export function dbContract(name: string, make: () => Promise<Db>) {
       await db.setConfig("payments_enabled", "off");
       expect((await db.getConfig()).payments_enabled).toBe("off");
     });
+
+    it("doc store: insert, filters, sort, update, inc, upsert, delete", async () => {
+      const db = await make();
+      const col = db.docs<{ _id: string; orgId: string; n: number; at: Date; text?: string; tags?: string[] }>(`t_${Math.random().toString(36).slice(2)}`);
+      expect(await col.insert({ _id: "a", orgId: "o", n: 1, at: new Date(1000), text: "Hello World" })).toBe(true);
+      expect(await col.insert({ _id: "a", orgId: "o", n: 9, at: new Date(0) })).toBe(false); // duplicate _id
+      await col.insert({ _id: "b", orgId: "o", n: 2, at: new Date(2000), text: "other", tags: ["x", "y"] });
+      await col.insert({ _id: "c", orgId: "p", n: 3, at: new Date(3000) });
+      expect((await col.get("a"))?.text).toBe("Hello World");
+      expect((await col.get("a")) as object).not.toHaveProperty("app");
+      expect((await col.find({ orgId: "o" }, { sort: { at: -1 } })).map((d) => d._id)).toEqual(["b", "a"]);
+      expect((await col.find({ _id: { $in: ["a", "c"] } }, { sort: { n: 1 } })).map((d) => d._id)).toEqual(["a", "c"]);
+      expect((await col.find({ at: { $lt: new Date(2000) } })).map((d) => d._id)).toEqual(["a"]);
+      expect((await col.find({ n: { $gte: 2 }, orgId: "o" })).map((d) => d._id)).toEqual(["b"]);
+      expect((await col.find({ orgId: "o", _id: { $ne: "a" } })).map((d) => d._id)).toEqual(["b"]);
+      expect((await col.find({ text: { $contains: "hello w" } })).map((d) => d._id)).toEqual(["a"]);
+      expect((await col.find({ text: { $contains: "(" } })).length).toBe(0); // regex characters are literal
+      expect((await col.find({ tags: "y" })).map((d) => d._id)).toEqual(["b"]);
+      expect(await col.count({ orgId: "o" })).toBe(2);
+      expect(await col.update({ _id: "a" }, { text: "changed" }, { inc: { n: 5 } })).toBe(1);
+      expect(await col.get("a")).toMatchObject({ text: "changed", n: 6 });
+      expect(await col.update({ _id: "z" }, { orgId: "o" }, { inc: { n: 2 }, upsert: true })).toBe(1);
+      expect(await col.get("z")).toMatchObject({ orgId: "o", n: 2 });
+      expect(await col.update({ _id: "a" }, { text: undefined })).toBe(1);
+      expect(await col.get("a")).not.toHaveProperty("text");
+      expect(await col.update({ _id: "nope" }, { text: "x" })).toBe(0);
+      expect(await col.delete({ orgId: "o" })).toBe(3);
+      expect(await col.count({})).toBe(1);
+    });
+
+    it("org export and delete cover Postslot collections", async () => {
+      const db = await make();
+      await db.docs("forms").insert({ _id: "f1", orgId: "org_x", name: "A" } as never);
+      await db.docs("recipients").insert({ _id: "org_x|a@b.co", orgId: "org_x", email: "a@b.co", verifyTokenHash: "secret" } as never);
+      const exp = (await db.exportOrgData("org_x")) as { forms: unknown[]; recipients: object[] };
+      expect(exp.forms).toHaveLength(1);
+      expect(exp.recipients[0]).not.toHaveProperty("verifyTokenHash");
+      await db.deleteOrgData("org_x");
+      expect(await db.docs("forms").count({ orgId: "org_x" })).toBe(0);
+      expect(await db.docs("recipients").count({ orgId: "org_x" })).toBe(0);
+    });
   });
 }

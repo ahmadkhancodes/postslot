@@ -16,6 +16,7 @@ const schema = z.object({
   RESEND_API_KEY: z.string().optional(),
   MAIL_FROM: z.string().optional(),
   CRON_SECRET: z.string().optional(),
+  MAIL_WEBHOOK_SECRET: z.string().optional(),
   ALTCHA_HMAC_KEY: z.string().optional(),
   APP_FLAGS: z.string().optional(),
   ADMIN_EMAILS: z.string().optional(),
