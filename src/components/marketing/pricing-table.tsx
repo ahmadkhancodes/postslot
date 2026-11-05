@@ -29,8 +29,16 @@ function annualSavings(): { min: number; max: number } | null {
   return pct.length ? { min: Math.min(...pct), max: Math.max(...pct) } : null;
 }
 
-const RISK_FREE = "No credit card needed.";
-const RISK_PAID = "Cancel anytime from your account.";
+/** Monthly premium over annual for Pro, in dollars to one decimal (brief: "+$1.30 a month versus annual"). */
+function proMonthlyPremium(): string | null {
+  const pro = plans.find((p) => p.id === "pro");
+  const m = pro?.prices.find((x) => x.interval === "month");
+  const y = pro?.prices.find((x) => x.interval === "year");
+  return m && y ? ((m.usd - y.usd / 12) / 100).toFixed(1) : null;
+}
+
+const RISK_FREE = "No card, no trial clock. The Free plan is the trial.";
+const RISK_PAID = "Cancel anytime. Export your data.";
 
 export function PricingTable({ id = "pricing", title }: { id?: string; title?: string }) {
   const [interval, setBilling] = useState<Interval>(product.defaultInterval);
@@ -63,7 +71,9 @@ export function PricingTable({ id = "pricing", title }: { id?: string; title?: s
                 </button>
               ))}
             </div>
-            <p className="caption-2 text-text-subtle">Annual billing saves {savingText} on plans sold both ways.</p>
+            <p className="caption-2 text-text-subtle">
+              Annual saves {savingText} on plans sold both ways. Pro monthly costs about ${proMonthlyPremium()}0 a month more than annual.
+            </p>
           </div>
         ) : null}
       </div>

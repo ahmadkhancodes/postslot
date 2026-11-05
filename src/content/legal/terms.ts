@@ -37,9 +37,10 @@ export const terms: LegalDoc = {
             const prices = pl.prices.length
               ? pl.prices.map((x) => `$${(x.usd / 100).toFixed(2)} per ${x.interval}`).join(" or ")
               : "free";
-            return `${pl.name}: ${prices}.`;
+            return `${pl.name}: ${prices}, ${pl.limits.submissions.toLocaleString("en-US")} submissions a month.`;
           }),
         },
+        "The meter is submissions per month. Submissions blocked as spam and test submissions do not count. If you go over your limit we keep accepting legitimate submissions and hold them in your inbox instead of rejecting them. Held submissions are released when you upgrade or the month resets.",
         "Paid plans are billed in advance through Stripe and renew automatically each period until you cancel. Prices exclude taxes, which we add where required. If a payment fails we keep your plan for a grace period and then move the account to the Free plan.",
       ],
     },

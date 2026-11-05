@@ -47,7 +47,18 @@ export default async function ComparePage({ params }: Props) {
             rows={entry.rows.map((r) => ({ label: r.label, values: [...r.values] }))}
           />
         </div>
+        <p className="caption-2 mt-4 max-w-2xl text-text-subtle">
+          Checked {entry.checked} from public pages. Source:{" "}
+          <a href={entry.source.url} rel="noopener nofollow" className="text-action underline underline-offset-4 hover:text-action-hover focus-visible:focus-ring">{entry.source.label}</a>.
+          {" "}Not affiliated with {entry.competitor}.
+        </p>
         <p className="body-6 mt-6 max-w-2xl text-text-subtle">{entry.fitNote}</p>
+      </Section>
+      <Section tone="raised" labelledBy="migrate-title">
+        <h2 id="migrate-title" className="heading-4 md:heading-2 max-w-2xl text-text">Moving takes one action URL</h2>
+        <ol className="mt-8 flex max-w-2xl list-decimal flex-col gap-2 pl-6 body-3 text-text-subtle">
+          {entry.migration.map((m) => <li key={m}>{m}</li>)}
+        </ol>
       </Section>
       <Faq title="Common questions" items={entry.faq} />
       <FinalCta

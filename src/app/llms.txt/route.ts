@@ -1,3 +1,4 @@
+import { compareEntries } from "@/content/compare";
 import { docs } from "@/content/docs";
 import { legalDocs } from "@/content/legal";
 import { product } from "@/config/product";
@@ -17,7 +18,9 @@ export function GET() {
     "",
     "## Product",
     "",
-    `- [Pricing](${u("/pricing")}): Plans and limits`,
+    `- [Pricing](${u("/pricing")}): Free 250 submissions a month, Starter $24 a year, Pro $7.49 a month or $74 a year, Agency $19.49 a month or $199 a year. Spam never counts; over limit submissions are held, not rejected.`,
+    `- Form endpoint: POST a normal HTML form to ${u("/f/<form_key>")}. Every submission gets a delivery receipt.`,
+    ...compareEntries.map((c) => `- [${c.title}](${u(`/compare/${c.slug}`)}): Dated comparison, checked ${c.checked}`),
     `- [Full documentation as one file](${u("/llms-full.txt")}): All docs in markdown`,
     "",
     "## Legal",
