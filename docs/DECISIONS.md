@@ -15,3 +15,4 @@ Standing decisions are in docs/factory/BATCH1_PLAN.md (Mongo instead of Postgres
 - **D-K10 Spacing scale enforced at compile time:** `--spacing-*: initial` in `@theme`; off-scale utilities simply produce no CSS.
 - **D-K11 Stub mode:** missing `MONGODB_URI` -> memory driver; missing Stripe key -> 503 `billing_unavailable`; console mailer prints bodies only with `MAIL_CONSOLE_PRINT=1`.
 - **D-K12 Atlas DB user:** the connector's create-user call needs an interactive confirmation; reported to the orchestrator, running on the memory driver until `MONGODB_URI` arrives.
+- **D-P1 Postslot palette (draft, pending orchestrator approval):** the brief's Ledger Green / Archivo / Plex palette is rejected because of the palette registry (no green/teal/navy/amber families). Direction: cool neutral ramp + postmark vermilion action (#B93F17 light, #E8946B dark), danger moved to berry (#A3134A) so the accent never reads as an error. See docs/DESIGN.md.
