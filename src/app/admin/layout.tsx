@@ -14,13 +14,17 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   if (!isFounderAdmin(s.user.email)) notFound();
   return (
     <div className="flex min-h-dvh flex-col bg-surface">
-      <header className="flex items-center justify-between border-b border-border px-4 py-2 sm:px-6 lg:px-10">
-        <div className="flex items-center gap-4">
+      <header className="flex flex-wrap items-center justify-between gap-x-4 border-b border-border px-4 py-2 sm:px-6 lg:px-10">
+        <div className="flex flex-wrap items-center gap-x-4">
           <span className="heading-6 text-text">{product.name} admin</span>
           <Link href="/app" className="inline-flex min-h-11 items-center gap-2 body-6 text-text-subtle transition-colors duration-300 hover:text-text focus-visible:focus-ring">
             <ArrowLeft size={16} weight="regular" aria-hidden />
             Back to app
           </Link>
+          <nav aria-label="Admin" className="flex items-center gap-1">
+            <Link href="/admin" className="inline-flex min-h-11 items-center rounded-md px-3 body-6 text-text-subtle transition-colors duration-300 hover:text-text focus-visible:focus-ring">Overview</Link>
+            <Link href="/admin/suppressions" className="inline-flex min-h-11 items-center rounded-md px-3 body-6 text-text-subtle transition-colors duration-300 hover:text-text focus-visible:focus-ring">Suppressions</Link>
+          </nav>
         </div>
         <ThemeToggle />
       </header>

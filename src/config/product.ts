@@ -75,6 +75,17 @@ export const product = {
     overLimit: "held" as "held" | "rejected",
     warnAtPercent: [80, 100],
   },
+  /**
+   * Custom sending domain (Pro and Agency). The records a customer adds point at these names. The feature depends on the
+   * SMTP path (docs/OWN_MTA.md): until that is live, the page shows the records and checks them, and nothing sends from the domain.
+   */
+  sending: {
+    spfInclude: "_spf.postslot.buffersoltech.com",
+    dkimSelector: "postslot1",
+    dkimTarget: "postslot1.dkim.postslot.buffersoltech.com",
+    dmarcReportAddress: "dmarc@buffersoltech.com",
+    minPlan: "pro" as PlanId,
+  },
   /** Monthly add-ons in cents (docs/brief.md). */
   addOns: [
     { id: "seat", name: "Extra seat", usdPerMonth: 249 },
@@ -139,6 +150,8 @@ export const product = {
     payments_enabled: "on",
     signups_enabled: "on",
     maintenance: "off",
+    /** Owner flips this to "on" only when the own mail server passes the deliverability checks (docs/OWN_MTA.md). Site copy must not claim own mail servers while it is off. */
+    own_mta_live: "off",
   } as Record<string, string>,
   nav: [
     { href: "/pricing", label: "Pricing" },

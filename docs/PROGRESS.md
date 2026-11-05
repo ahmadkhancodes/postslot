@@ -54,3 +54,13 @@
 - **Known gaps:** test submissions are not visibly labelled in the inbox list; word search is whole word (documented in D-M3-1).
 - **Next: M4:** own-mail-server path behind the Mailer interface, founder admin (workspace search, abuse flags, suspend form, plan override, suppression list), domain verification pages, `/status` and canary cron; then M5.
 
+
+## 5 Nov 2026 (M4 code done, not deployed)
+- **Admin** `/admin` (search, pipeline status), `/admin/org/[id]` (abuse signals, suspend form/workspace, plan and limit override, audit), `/admin/suppressions` (list, add, remove). Every write audited. See D-M4-1.
+- **Own-mail path:** `SmtpMailer` (nodemailer, DKIM options, VERP, daily cap), DSN/ARF parser and `/api/hooks/dsn`, `docs/OWN_MTA.md`, flag `own_mta_live` off; default provider unchanged. D-M4-2.
+- **`/app/domains`:** SPF/DKIM/DMARC records and "Check records" (node:dns, stub-tested); `/app/usage` with 12 month SVG chart. Nav items added.
+- **Polish:** "Test submission" badge in inbox list and detail, whole-word search hint, cron table (incl. `retention-purge`) in ARCHITECTURE.md.
+- **Docs:** 7 new `/docs` pages (13 total), `llms.txt` updated, no own-MTA claim.
+- **Checks:** lint 0 errors, typecheck, 194 unit tests (new `tests/unit/m4.test.ts`, no network), build, Playwright 6 pass (new `tests/e2e/m4.spec.ts`; `ADMIN_EMAILS` added to its server env). Screenshots `docs/qa/m4/`.
+- **On deploy:** `npm run db:indexes` (unchanged this milestone); optional env in `.env.example` (`SMTP_*`, `DSN_WEBHOOK_SECRET`); MANUAL_STEPS item 4.
+- **Next: M5** QA, Lighthouse, Opus review, launch checklist; also `/status` + canary cron and AI builder prompts (D-M4-6).

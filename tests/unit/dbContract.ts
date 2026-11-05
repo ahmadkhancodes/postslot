@@ -81,6 +81,16 @@ export function dbContract(name: string, make: () => Promise<Db>) {
       expect(await db.isSuppressed(e, "notification")).toBe(true);
     });
 
+    it("listSuppressions filters by address substring, newest first", async () => {
+      const db = await make();
+      const tag = `zz${Math.random().toString(36).slice(2, 8)}`;
+      await db.addSuppression({ email: `a.${tag}@x.test`, scope: "all", reason: "bounce", at: new Date(1000) });
+      await db.addSuppression({ email: `b.${tag}@x.test`, scope: "all", reason: "manual", at: new Date(2000) });
+      const rows = await db.listSuppressions({ q: tag.toUpperCase() });
+      expect(rows.map((r) => r.email)).toEqual([`b.${tag}@x.test`, `a.${tag}@x.test`]);
+      expect(await db.listSuppressions({ q: tag, limit: 1 })).toHaveLength(1);
+    });
+
     it("deleteOrgData removes billing + webhooks but keeps the audit log", async () => {
       const db = await make();
       const org = `org_${Math.random()}`;

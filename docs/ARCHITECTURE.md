@@ -171,10 +171,23 @@ Acceptance (P0 11): a forced canary failure raises an alert email in under 5 min
 | `GET /thanks`, `/ps.js`, `GET /api/altcha` | public | Thank-you page, time token script, PoW challenge |
 | `/api/forms` (list/create), `/api/forms/:id` (get/patch/delete), `/api/forms/:id/test`, `/export`, `/recipients`, `/recipients/:rid/{verify,unsuppress}` | session | Form management |
 | `/api/submissions`, `/api/submissions/:id`, `…/release`, `…/spam`, `…/redeliver`, `DELETE` | session | Inbox actions |
-| `/api/hooks/mail`, later `/api/hooks/mta` | HMAC | Delivery events |
-| `/api/cron/{sweep,retention,usage,canary,onboarding}` | `CRON_SECRET` | Schedulers |
+| `/api/hooks/mail` | Svix HMAC (`MAIL_WEBHOOK_SECRET`) | Provider delivery events |
+| `/api/hooks/dsn` | Bearer or `x-webhook-secret` (`DSN_WEBHOOK_SECRET`) | Raw bounce messages (DSN) and abuse reports (ARF) from our own mail server, parsed into MailEvents (M4) |
+| `/api/cron/<job>` | `CRON_SECRET` | Schedulers, see "Cron jobs" below |
+| `/api/domains`, `/api/domains/:domain`, `/api/domains/:domain/check` | session | Custom sending domain records and DNS check (M4, Pro and above, depends on the SMTP path) |
+| `/api/admin/action`, `/api/admin/overview` | session + `ADMIN_EMAILS` | Founder admin writes (suspend, plan, limit, suppression) with audit |
 | `/api/billing/*`, `/api/stripe/webhook`, `/api/auth/*`, `/api/admin/*` | kit | Existing |
 | `/api/v1/*` (scoped API tokens, OpenAPI) | API key | P1 |
+
+### Cron jobs
+Registered in `src/lib/cron/jobs.ts`, called at `/api/cron/<job>` with `Authorization: Bearer $CRON_SECRET`. All are idempotent.
+
+| Job | What it does | Schedule |
+|---|---|---|
+| `deliver-pending` | Re-drives submissions stuck in `received`, retries queued deliveries with backoff, expires deferrals after 3 days, releases held submissions | Every minute on the Cloudflare cron worker; daily in `vercel.json` (Hobby) |
+| `webhook-retries` | Retries due outbound webhook deliveries | Worker every minute; daily in `vercel.json` |
+| `retention-purge` | Deletes submissions older than the plan's `retentionDays` (never held ones) and writes an audit entry per workspace. Per form "delete all submissions" is separate | Worker daily or every minute (`JOBS` in `infra/cron-worker/wrangler.toml`). Not in `vercel.json`: Hobby caps the number of cron jobs |
+| `heartbeat` | Returns the time; use it to check the scheduler and secret | Optional |
 
 All inputs validated with Zod; every list endpoint is org-scoped in the query, never filtered after the fact.
 

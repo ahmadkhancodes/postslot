@@ -90,7 +90,8 @@ export async function computeEntitlement(
     )
       best = cand;
   }
-  return best ?? { ...NONE(now), trialUsed };
+  const out = best ?? { ...NONE(now), trialUsed };
+  return prev?.limitOverrides ? { ...out, limitOverrides: prev.limitOverrides } : out;
 }
 
 export function lifetimeEntitlement(plan: PlanId, piId: string, now: number): Entitlement {
@@ -111,6 +112,11 @@ export async function cancelAppSubscriptions(stripe: Pick<Stripe, "subscriptions
  * past_due keeps the plan for product.graceDays (C-20), then falls back to Free.
  */
 export function effectivePlan(e: Entitlement | null, now = Date.now()): Plan {
+  const base = basePlan(e, now);
+  return e?.limitOverrides ? { ...base, limits: { ...base.limits, ...e.limitOverrides } } : base;
+}
+
+function basePlan(e: Entitlement | null, now: number): Plan {
   if (!e || !e.isPaid) return freePlan;
   if (e.status === "lifetime") return planById(e.plan) ?? freePlan;
   const slack = 2 * 864e5; // tolerate renewal webhooks arriving a little late

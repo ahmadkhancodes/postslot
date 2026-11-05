@@ -238,6 +238,12 @@ export function createMongoDb(uri: string, dbName: string, app: string): Db {
     async removeSuppression(email, scope = "all") {
       await (await col<{ _id: string }>("suppressions")).deleteOne({ _id: `${app}:${email.toLowerCase()}|${scope}` });
     },
+    async listSuppressions({ q, limit = 100 } = {}) {
+      const filter: Record<string, unknown> = { app };
+      if (q) filter.email = { $regex: q.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") };
+      const rows = await (await col<WithId<Suppression & { app: string }>>("suppressions")).find(filter).sort({ at: -1 }).limit(limit).toArray();
+      return rows.map(({ email, reason, scope, at }) => ({ email, reason, scope, at }));
+    },
     async getConfig() {
       const docs = await (await col<{ _id: string; value: string; app: string }>("config")).find({ app }).toArray();
       return Object.fromEntries(docs.map((d) => [d._id.replace(`${app}:`, ""), d.value]));

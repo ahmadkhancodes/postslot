@@ -41,16 +41,3 @@ export function resendTransport(apiKey: string, fetchFn: typeof fetch = fetch): 
     },
   };
 }
-
-/**
- * SMTP adapter stub for the VPS (own Postfix/KumoMTA). Implement with nodemailer when the VPS exists;
- * the interface stays the same so no caller changes.
- */
-export function smtpTransport(): MailTransport {
-  return {
-    name: "smtp",
-    async send() {
-      throw new Error("smtp_transport_not_configured");
-    },
-  };
-}

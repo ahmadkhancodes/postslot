@@ -224,6 +224,14 @@ export function createMemoryDb(app: string, config: Record<string, string> = {})
     async removeSuppression(email, scope = "all") {
       suppressions.delete(sKey(email, scope));
     },
+    async listSuppressions({ q, limit = 100 } = {}) {
+      const needle = q?.toLowerCase();
+      return [...suppressions.values()]
+        .filter((s) => !needle || s.email.includes(needle))
+        .sort((a, b) => b.at.getTime() - a.at.getTime())
+        .slice(0, limit)
+        .map(clone);
+    },
     async getConfig() {
       return Object.fromEntries(cfg);
     },

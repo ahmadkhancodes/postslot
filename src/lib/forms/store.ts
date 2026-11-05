@@ -28,6 +28,7 @@ export const FormPatch = z.object({
 export type FormPatchInput = z.infer<typeof FormPatch>;
 
 export async function createForm(db: Db, ctx: { orgId: string; userEmail: string; emailVerified: boolean }, name: string, transport?: MailTransport): Promise<Form> {
+  if (await db.docs<{ _id: string; suspended: boolean }>("org_flags").findOne({ _id: ctx.orgId, suspended: true })) throw new HttpError(403, "workspace_suspended");
   const now = new Date();
   const owner = await ensureRecipient(db, ctx.orgId, ctx.userEmail, { verified: ctx.emailVerified, transport });
   const form: Form = {
