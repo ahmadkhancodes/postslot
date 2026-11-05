@@ -2,7 +2,8 @@ import { env } from "@/lib/env";
 import { json } from "@/lib/http";
 import { safeEqual } from "@/lib/ids";
 import { log } from "@/lib/logger";
-import { cronJobs } from "@/lib/cron/jobs";
+import { claimCronRun, cronJobs } from "@/lib/cron/jobs";
+import { getDb } from "@/lib/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,6 +22,7 @@ async function run(req: Request, { params }: { params: Promise<{ job: string }> 
   if (!fn) return json({ error: "unknown_job" }, 404);
   const started = Date.now();
   try {
+    if (!(await claimCronRun(await getDb(), job))) return json({ ok: true, job, skipped: "already_running" });
     const result = await fn();
     log.info("cron_ok", { route: `cron/${job}`, ms: Date.now() - started });
     return json({ ok: true, job, result, ms: Date.now() - started });

@@ -72,7 +72,7 @@ export const privacy: LegalDoc = {
       id: "deletion-export",
       title: "Account deletion and data export",
       body: [
-        "You can export or delete your data yourself. In the app, open Settings, then Account. You can also use the API: GET /api/account/export returns a copy of your data, and DELETE /api/account permanently deletes your account and workspace.",
+        "You can export or delete your data yourself. In the app, open Settings, then Profile. You can also use the API: GET /api/account/export returns a copy of your data, and DELETE /api/account permanently deletes your account and workspace.",
       ],
     },
     {

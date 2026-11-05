@@ -4,7 +4,7 @@ import type { Form, Submission } from "@/lib/forms/types";
 import { train } from "@/lib/spam/bayes";
 import { scoreSubmission } from "@/lib/spam/score";
 import { periodOf } from "@/lib/billing/usage";
-import { dispatchSubmission, retryQueued, type Deps } from "./dispatch";
+import { dispatchHeldUnverified, dispatchSubmission, retryQueued, verifiedRecipients, type Deps } from "./dispatch";
 import { recomputeSubmissionStatus, recordEvent, suppressionScope } from "./events";
 import type { Delivery, Recipient } from "@/lib/forms/types";
 import { log } from "@/lib/logger";
@@ -30,15 +30,19 @@ async function dispatchOrHold(db: Db, form: Form, sub: Submission, deps: Deps): 
 async function meterAndRoute(db: Db, form: Form, sub: Submission, deps: Deps): Promise<Submission> {
   const now = deps.now?.() ?? new Date();
   if (!sub.isTest && !sub.metered) {
+    // Claim the unit first: a concurrent caller (cron release vs the Stripe webhook release) that loses the claim stops here,
+    // so a submission is never counted or dispatched twice.
+    if (!(await subs(db).update({ _id: sub._id, metered: { $ne: true }, status: { $ne: "quarantined" } }, { metered: true }))) return (await subs(db).get(sub._id))!;
     if (!(await admit(db, sub.orgId, now))) {
-      await countHeld(db, sub.orgId, now);
+      await subs(db).update({ _id: sub._id }, { metered: undefined });
+      // The cron retries held rows every minute: count the hold on the `held` meter only when it first becomes held.
+      if (sub.status !== "held") await countHeld(db, sub.orgId, now);
       await subs(db).update({ _id: sub._id }, { status: "held", holdReason: "over_limit" });
       await soft(checkUsageNotices(db, sub.orgId, deps), "usage_notice");
       // The cron retries held rows every minute: announce the hold once, when the submission first becomes held.
       if (sub.status !== "held") await emitSubmissionEvent(db, form, { ...sub, status: "held", holdReason: "over_limit" }, "submission.held", deps);
       return (await subs(db).get(sub._id))!;
     }
-    await subs(db).update({ _id: sub._id }, { metered: true });
     sub = { ...sub, metered: true };
     await soft(checkUsageNotices(db, sub.orgId, deps), "usage_notice");
   }
@@ -148,8 +152,21 @@ export async function deliverPending(db: Db, deps: Deps = {}) {
     await recordEvent(db, { orgId: d.orgId, submissionId: d.submissionId, deliveryId: d._id, type: "expired", at: now, detail: "no acceptance after 3 days of retries" });
     await recomputeSubmissionStatus(db, d.submissionId, deps);
   }
+  // Held for an unverified recipient but the form has a confirmed one now (for example the owner re-added their own,
+  // already confirmed address, which sends no confirmation link): dispatch them instead of leaving them held.
+  const waiting = await subs(db).find({ status: "held", holdReason: "recipient_unverified" }, { limit: 200, sort: { receivedAt: 1 } });
+  const formCache = new Map<string, Form | null>();
+  let unblocked = 0;
+  for (const s of waiting) {
+    if (!formCache.has(s.formId)) {
+      const f = await db.docs<Form>("forms").get(s.formId);
+      formCache.set(s.formId, f && (await verifiedRecipients(db, f)).length ? f : null);
+    }
+    const f = formCache.get(s.formId);
+    if (f && (await dispatchHeldUnverified(db, f, s, deps))) unblocked++;
+  }
   const heldOrgs = [...new Set((await subs(db).find({ status: "held", holdReason: "over_limit" }, { limit: 500, sort: { receivedAt: 1 } })).map((s) => s.orgId))];
   let released = 0;
   for (const o of heldOrgs) released += await releaseHeld(db, o, deps);
-  return { reprocessed: stuck.length, retried, expired: old.length, released };
+  return { reprocessed: stuck.length, retried, expired: old.length, released, unblocked };
 }

@@ -19,7 +19,7 @@ export const spam: DocPage = {
         "Rate limits: at most 5 posts a minute per visitor and 120 a minute per form. Over that, the endpoint answers 429. We store a salted hash of the IP, not the address.",
         "Honeypot: a hidden field named _gotcha or botcheck. A person never fills it, a bot usually does. A filled honeypot is spam straight away.",
         "Time token: add the one line script tag from the form page. It signs the time the page loaded, so posts that arrive impossibly fast score higher.",
-        "Proof of work (ALTCHA): optional, per form. It makes the visitor's browser do a small calculation. There is no puzzle to solve, no tracking and no third party.",
+        "Proof of work (ALTCHA): optional, per form, off by default. It makes the visitor's browser do a small calculation. There is no puzzle to solve, no tracking and no third party. Add the open source ALTCHA widget inside your form with challengeurl set to https://postslot.buffersoltech.com/api/altcha first, then turn the check on in the form settings: with the check on, a post without a solved widget is rejected with captcha_failed.",
         "Content rules: more links than allowed (default 2), blocked phrases you set, scripts and iframes in the text, and disposable email domains. Each rule adds a weight to the score.",
         "Learning filter: a Bayesian filter that learns from your Mark spam and Not spam clicks, per workspace.",
       ],

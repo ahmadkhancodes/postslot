@@ -104,6 +104,11 @@ export function createAuth(db: BetterAuthOptions["database"]) {
         creatorRole: "owner",
         allowUserToCreateOrganization: true,
         invitationExpiresIn: 60 * 60 * 24 * 7,
+        // Seats from the plan (product.ts): enforced when an invitation is accepted or a member is added.
+        membershipLimit: async (_user, org) => {
+          const [{ getDb }, { seatLimit }] = await Promise.all([import("@/lib/db"), import("@/lib/billing/seats")]);
+          return seatLimit(await getDb(), org.id);
+        },
         sendInvitationEmail: async (data) => {
           const url = `${base}/accept-invite/${data.id}`;
           const m = inviteEmail({ orgName: data.organization.name, inviter: data.inviter.user.name || data.inviter.user.email, url, role: data.role });

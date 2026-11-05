@@ -86,7 +86,13 @@ export const product = {
     dmarcReportAddress: "dmarc@buffersoltech.com",
     minPlan: "pro" as PlanId,
   },
-  /** Monthly add-ons in cents (docs/brief.md). */
+  /**
+   * Planned features from docs/brief.md (P1/P2) that are NOT built yet. Shown as "planned", never as a plan feature, until the
+   * code exists (pre-launch review, docs/REVIEW.md).
+   */
+  planned: ["custom sending domain (DNS setup and checks already work)", "autoresponder", "file uploads", "white label emails", "Slack, Sheets and Notion integrations"],
+  /** Monthly add-ons in cents (docs/brief.md). Not on sale yet: no Stripe prices exist, so the pricing page labels them planned. */
+  addOnsOnSale: false,
   addOns: [
     { id: "seat", name: "Extra seat", usdPerMonth: 249 },
     { id: "storage", name: "10 GB more file storage", usdPerMonth: 149 },
@@ -114,7 +120,7 @@ export const product = {
       tagline: "For freelancers with a few client sites",
       prices: [price("starter", "year", 2400)],
       limits: { submissions: 5000, seats: 1, recipients: 3, integrations: 1, storage_mb: 0 },
-      highlights: ["5,000 submissions a month", "3 recipients", "Webhooks and 1 integration", "6 month history", "Yearly billing only"],
+      highlights: ["5,000 submissions a month", "3 recipients", "1 signed webhook endpoint", "6 month history", "Yearly billing only"],
       cta: "Choose Starter",
       trialDays: 0,
       retentionDays: 180,
@@ -125,7 +131,7 @@ export const product = {
       tagline: "For developers who need proof of delivery",
       prices: [price("pro", "month", 749), price("pro", "year", 7400)],
       limits: { submissions: 10000, seats: 3, recipients: 5, integrations: 5, storage_mb: 5120 },
-      highlights: ["10,000 submissions a month", "Custom sending domain", "90 day delivery log", "Autoresponder and file uploads", "Webhooks and 5 integrations", "3 seats, 1 year history"],
+      highlights: ["10,000 submissions a month", "5 recipients, 3 seats", "5 signed webhook endpoints", "90 day delivery log", "1 year history"],
       cta: "Choose Pro",
       featured: true,
       trialDays: 0,
@@ -137,7 +143,7 @@ export const product = {
       tagline: "For studios running many client sites",
       prices: [price("agency", "month", 1949), price("agency", "year", 19900)],
       limits: { submissions: 20000, seats: 10, recipients: 10, integrations: 10, storage_mb: 10240 },
-      highlights: ["20,000 submissions a month", "Client workspaces", "White label emails", "10 seats, 10 recipients", "Priority support within 24 hours"],
+      highlights: ["20,000 submissions a month", "10 recipients, 10 seats", "10 signed webhook endpoints", "1 year history", "Priority support within 24 hours"],
       cta: "Choose Agency",
       trialDays: 0,
       retentionDays: 365,

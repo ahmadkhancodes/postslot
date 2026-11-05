@@ -36,6 +36,9 @@ export default function PricingPage() {
           Pro: 10,000 submissions a month for ${proYear} a year or $7.49 a month. Web3Forms (web3forms.com) Pro is $149 a year or $15 a month for the same 10,000 (checked 3 Nov 2026, not affiliated).{" "}
           <Link href="/compare/web3forms" className="text-action underline underline-offset-4 hover:text-action-hover focus-visible:focus-ring">See the comparison</Link>
         </p>
+        <p className="body-6 mt-3 max-w-2xl text-text-subtle">
+          Planned, not in any plan yet: {product.planned.join(", ")}. We list a feature on a plan only once it works.
+        </p>
       </Section>
       <Section tone="raised" labelledBy="addons-title">
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-16">
@@ -48,7 +51,7 @@ export default function PricingPage() {
           </div>
           <div className="min-w-0 lg:col-span-7">
             <table className="w-full border-collapse text-left">
-              <caption className="sr-only">Monthly add ons</caption>
+              <caption className="pb-3 text-left caption-2 text-text-subtle">{product.addOnsOnSale ? "Monthly add ons" : "Planned monthly add ons, not on sale yet"}</caption>
               <thead>
                 <tr className="border-b border-border-strong">
                   <th scope="col" className="py-3 pr-4 caption-3 text-text-subtle">Add on</th>

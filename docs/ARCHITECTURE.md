@@ -133,7 +133,7 @@ Three code-defined templates (default, compact table, plain text) in `delivery/t
 - Pages: `/app/inbox` (list, filters form/status/date, search), `/app/inbox/[id]` (fields, timeline, signals, Redeliver, Release, Delete). Ledger rows, 40 px, detail pane on desktop, stacked on mobile.
 - Search: `$text` over `searchText` (all field values, lowercased, bounded to 8 KB) with equality prefix `orgId` (compound text index), plus exact/prefix match on `emailLower`. Cursor pagination by `(receivedAt,_id)`. Target p95 under 300 ms over 100k rows measured by a seeded benchmark script (`scripts/bench-search.ts`) against Atlas; if the M0 tier misses it, Atlas Search (available on M0) is the swap behind `inbox/query.ts`.
 - Export: `GET /api/forms/:id/export?format=csv|json&…filters` streams with a Mongo cursor, no buffering, available on every plan (50k rows within the function limit: 60 s on Pro; chunked by date range with a "next" link if over).
-- Retention: per form `retentionDays` 7 to 1095, unlimited on paid; `purgeAt` TTL index does the deletion, and a daily `retention` cron purges deliveries and orphans and applies plan-downgrade history caps. Held submissions are never purged while held.
+- Retention: per form `retentionDays` 7 to 1095, unlimited on paid; `purgeAt` TTL index does the deletion, and a daily `retention` cron purges deliveries and orphans and applies plan-downgrade history caps. Held submissions are purged like any other row once their plan's history period ends (matches the privacy policy, D-M5-1).
 
 Acceptance (P0 7): seed 100k submissions, search p95 under 300 ms; filters combine; CSV of 50k rows streams without timeout; changing retention updates `purgeAt` on existing rows; purge removes expired rows and their events.
 
@@ -184,9 +184,12 @@ Registered in `src/lib/cron/jobs.ts`, called at `/api/cron/<job>` with `Authoriz
 
 | Job | What it does | Schedule |
 |---|---|---|
-| `deliver-pending` | Re-drives submissions stuck in `received`, retries queued deliveries with backoff, expires deferrals after 3 days, releases held submissions | Every minute on the Cloudflare cron worker; daily in `vercel.json` (Hobby) |
-| `webhook-retries` | Retries due outbound webhook deliveries | Worker every minute; daily in `vercel.json` |
-| `retention-purge` | Deletes submissions older than the plan's `retentionDays` (never held ones) and writes an audit entry per workspace. Per form "delete all submissions" is separate | Worker daily or every minute (`JOBS` in `infra/cron-worker/wrangler.toml`). Not in `vercel.json`: Hobby caps the number of cron jobs |
+| `deliver-pending` | Re-drives submissions stuck in `received`, retries queued deliveries with backoff, expires deferrals after 3 days, releases over-limit holds, dispatches holds whose form now has a confirmed recipient | Every minute on the Cloudflare cron worker; daily in `vercel.json` (Hobby) |
+| `webhook-retries` | Retries due outbound webhook deliveries | Worker every minute |
+| `retention-purge` | Deletes submissions (held ones included) older than the plan's `retentionDays` and writes an audit entry per workspace. Per form "delete all submissions" is separate | Worker every minute (`JOBS` in `infra/cron-worker/wrangler.toml`) |
+| `maintenance` | `webhook-retries` + `retention-purge` in one call, so both run daily on Vercel Hobby (two cron slots) even without the worker | Daily in `vercel.json` |
+
+Every job takes a 50 s run lock (`claimCronRun`), so two triggers of the same job within 50 s (the worker and Vercel Cron at the same minute, a manual call) run it once. Per-row claims (`metered`, held to sorted) stop double counting and double sends when runs still overlap.
 | `heartbeat` | Returns the time; use it to check the scheduler and secret | Optional |
 
 All inputs validated with Zod; every list endpoint is org-scoped in the query, never filtered after the fact.

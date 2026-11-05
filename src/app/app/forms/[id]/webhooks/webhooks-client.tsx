@@ -35,7 +35,7 @@ export function FormWebhooksClient({ formId, canManage, allowed, events, initial
     setBusy("create");
     const r = await api<{ endpoint: Endpoint; secret: string }>(`/api/forms/${formId}/webhooks`, { body: { url: url.trim(), events: picked } });
     setBusy(null);
-    if (!r.ok) return setErr(r.code === "plan_required" ? "Webhooks are on Starter and above." : r.code === "unsafe_url" ? "Use a public https:// URL." : r.message);
+    if (!r.ok) return setErr(r.code === "plan_required" ? "Your plan has no webhook endpoint left. Starter includes 1, Pro 5, Agency 10." : r.code === "unsafe_url" ? "Use a public https:// URL." : r.message);
     setEps([...eps, r.data.endpoint]);
     setSecret(r.data.secret);
     setUrl("");
