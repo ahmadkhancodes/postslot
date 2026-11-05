@@ -44,8 +44,22 @@ export type ApplyResult = "applied" | "duplicate" | "unknown" | "ignored";
 export async function applyMailEvent(db: Db, ev: MailEvent, deps: EmitDeps = {}): Promise<ApplyResult> {
   if (ev.type === "dispatched") return "ignored"; // we write our own dispatched stamp when we hand the message over
   const key = ev.id ?? `${ev.messageId}|${ev.type}|${ev.at.getTime()}`;
-  const fresh = await db.docs<{ _id: string; at: Date; expireAt: Date }>("mail_inbound_events").insert({ _id: key, at: new Date(), expireAt: new Date(Date.now() + 7 * 864e5) });
+  const seen = db.docs<{ _id: string; at: Date; expireAt: Date }>("mail_inbound_events");
+  // The id is claimed first so concurrent duplicates are dropped, and released again when the event did not apply
+  // (unknown message or an error), so the provider's retry is processed instead of being dropped as a duplicate.
+  const fresh = await seen.insert({ _id: key, at: new Date(), expireAt: new Date(Date.now() + 7 * 864e5) });
   if (!fresh) return "duplicate";
+  try {
+    const r = await applyClaimed(db, ev, deps);
+    if (r === "unknown") await seen.delete({ _id: key });
+    return r;
+  } catch (e) {
+    await seen.delete({ _id: key }).catch(() => 0);
+    throw e;
+  }
+}
+
+async function applyClaimed(db: Db, ev: MailEvent, deps: EmitDeps): Promise<ApplyResult> {
   const deliveries = db.docs<Delivery>("deliveries");
   const d = await deliveries.findOne({ mailerMessageId: ev.messageId });
   if (!d) return "unknown";

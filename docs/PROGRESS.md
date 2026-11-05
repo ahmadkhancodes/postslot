@@ -64,3 +64,12 @@
 - **Checks:** lint 0 errors, typecheck, 194 unit tests (new `tests/unit/m4.test.ts`, no network), build, Playwright 6 pass (new `tests/e2e/m4.spec.ts`; `ADMIN_EMAILS` added to its server env). Screenshots `docs/qa/m4/`.
 - **On deploy:** `npm run db:indexes` (unchanged this milestone); optional env in `.env.example` (`SMTP_*`, `DSN_WEBHOOK_SECRET`); MANUAL_STEPS item 4.
 - **Next: M5** QA, Lighthouse, Opus review, launch checklist; also `/status` + canary cron and AI builder prompts (D-M4-6).
+
+## 5 Nov 2026 (M5 pre-launch review, not deployed)
+- **Review written: `docs/REVIEW.md`** (4 P0, 11 P1, 12 P2, file and line, scenario, fix). Decisions D-M5-1 to D-M5-8.
+- **P0 fixed:** lost provider mail events (bounce never suppressed after a failed attempt); ALTCHA challenge had no CORS, so "Require ALTCHA" rejected every submission; pricing sold unbuilt features (sending domain, autoresponder, uploads, white label, integrations, add-ons) and the landing FAQ made four untrue claims.
+- **P1 fixed:** held meter grew every cron minute; double count and double send when cron and the Stripe webhook released holds together; holds waiting on a recipient stuck when a confirmed address was re-added; retention purge was never scheduled without the worker (new `maintenance` cron); cron run lock; seats enforced; webhook endpoints capped by plan; webhook SSRF via DNS. P2 fixed: test rows kept past 7 days, privacy settings path.
+- **Open (follow-up task):** P1-9 provider event before message id saved, P1-10 deletion leaves audit log/suppressions/global Bayes words, P1-11 deep health check, and the P2 list.
+- **Checks:** lint 0 errors, typecheck, 207 unit tests (13 new in `tests/unit/review.test.ts`), build, Playwright 6 pass.
+- **Manual:** MANUAL_STEPS items 5 (Cloudflare cron worker) and 6 (human a11y pass, `{{verify}}` cells).
+- **Next:** deploy, `npm run db:indexes`, then the open P1s.

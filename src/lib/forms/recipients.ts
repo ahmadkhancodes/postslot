@@ -2,7 +2,7 @@ import { appUrl } from "@/lib/env";
 import { randomToken, sha256 } from "@/lib/ids";
 import { sendMail, transportFromEnv, type MailTransport } from "@/lib/mail";
 import { renderVerification } from "@/lib/delivery/templates";
-import { dispatchSubmission, type Deps } from "@/lib/delivery/dispatch";
+import { dispatchHeldUnverified, type Deps } from "@/lib/delivery/dispatch";
 import { normEmail } from "@/lib/security/disposable";
 import type { Db } from "@/lib/db/types";
 import type { Form, Recipient, Submission } from "./types";
@@ -48,7 +48,7 @@ export async function verifyRecipient(db: Db, token: string, deps: Deps = {}, no
   for (const f of forms) {
     const held = await db.docs<Submission>("submissions").find({ formId: f._id, status: "held", holdReason: "recipient_unverified" }, { sort: { receivedAt: 1 }, limit: 500 });
     for (const s of held) {
-      if (await dispatchSubmission(db, f, s, deps)) released++;
+      if (await dispatchHeldUnverified(db, f, s, deps)) released++;
     }
   }
   return { email: r.email, released };

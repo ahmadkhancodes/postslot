@@ -1,4 +1,5 @@
 "use client";
+import { product } from "@/config/product";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/components/app/api";
@@ -130,7 +131,7 @@ function Settings({ form, canWrite }: { form: FormView; canWrite: boolean }) {
           <Field label="Email subject" htmlFor="f-subject" hint="Use {{field}} to insert a field, for example New message from {{name}}."><Input id="f-subject" value={v.subject} onChange={(e) => setV({ ...v, subject: e.target.value })} maxLength={200} /></Field>
           <Field label="Allowed sites" htmlFor="f-origins" hint={<>One per line, for example <code>yoursite.com</code> or <code>*.yoursite.com</code>. Empty allows any site. {form.blockedCount ? `${form.blockedCount} posts blocked so far.` : ""}</>}><Textarea id="f-origins" value={v.origins} onChange={(e) => setV({ ...v, origins: e.target.value })} rows={3} /></Field>
           <Field label="Spam filtering" htmlFor="f-spam" hint="Strict quarantines on weaker signals. Off still applies the honeypot and rate limits."><Select id="f-spam" value={v.spam} onChange={(e) => setV({ ...v, spam: e.target.value })}><option value="standard">Standard</option><option value="strict">Strict</option><option value="off">Off</option></Select></Field>
-          <label className="flex min-h-11 items-start gap-3 body-6 text-text"><input type="checkbox" checked={v.altcha} onChange={(e) => setV({ ...v, altcha: e.target.checked })} className="mt-1 size-5 accent-[var(--action)]" /><span>Require the ALTCHA proof-of-work check<span className="block caption-2 text-text-subtle">Needs the ALTCHA widget on your form. Challenges come from /api/altcha.</span></span></label>
+          <label className="flex min-h-11 items-start gap-3 body-6 text-text"><input type="checkbox" checked={v.altcha} onChange={(e) => setV({ ...v, altcha: e.target.checked })} className="mt-1 size-5 accent-[var(--action)]" /><span>Require the ALTCHA proof-of-work check<span className="block caption-2 text-text-subtle">Turn this on only after adding the ALTCHA widget to your form with challengeurl set to {`${product.url}/api/altcha`}. Without the widget every submission is rejected.</span></span></label>
           <label className="flex min-h-11 items-start gap-3 body-6 text-text"><input type="checkbox" checked={v.paused} onChange={(e) => setV({ ...v, paused: e.target.checked })} className="mt-1 size-5 accent-[var(--action)]" /><span>Pause this form<span className="block caption-2 text-text-subtle">Posts get a clear 403 instead of being stored.</span></span></label>
         </fieldset>
         {canWrite ? <div className="flex items-center gap-3"><Button type="submit" loading={busy}>Save settings</Button>{msg ? <p role={msg.tone === "err" ? "alert" : "status"} className={`caption-2 ${msg.tone === "err" ? "text-danger" : "text-text-subtle"}`}>{msg.text}</p> : null}</div> : null}

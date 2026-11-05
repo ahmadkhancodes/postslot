@@ -14,6 +14,12 @@ export async function webhooksAllowed(db: Db, orgId: string, now = Date.now()): 
   return limitFor(await db.getEntitlement(orgId), "integrations", now) > 0;
 }
 
+/** Webhook endpoints (form and workspace ones together) are the plan's `integrations` slots: Starter 1, Pro 5, Agency 10. */
+export async function webhookSlotAvailable(db: Db, orgId: string, now = Date.now()): Promise<boolean> {
+  const limit = limitFor(await db.getEntitlement(orgId), "integrations", now);
+  return limit > 0 && (await db.listWebhookEndpoints(orgId)).length < limit;
+}
+
 export function eventPayload(event: SubmissionEvent, form: Pick<Form, "_id" | "name">, sub: Submission) {
   return {
     form: { id: form._id, name: form.name },

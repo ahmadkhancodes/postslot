@@ -6,7 +6,7 @@ import { getOwnedForm } from "@/lib/forms/store";
 import { HttpError, json, readJson, withApi } from "@/lib/http";
 import { uuidv7 } from "@/lib/ids";
 import { isSafeWebhookUrl, newWebhookSecret } from "@/lib/webhooks/outbound";
-import { SUBMISSION_EVENTS, listFormWebhooks, webhooksAllowed } from "@/lib/webhooks/submissions";
+import { SUBMISSION_EVENTS, listFormWebhooks, webhookSlotAvailable, webhooksAllowed } from "@/lib/webhooks/submissions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,6 +33,7 @@ export const POST = withApi<Ctx>(async (req, { params }) => {
   const db = await getDb();
   await getOwnedForm(db, ctx.org.id, id);
   if (!(await webhooksAllowed(db, ctx.org.id))) throw new HttpError(403, "plan_required", { feature: "webhooks" });
+  if (!(await webhookSlotAvailable(db, ctx.org.id))) throw new HttpError(403, "plan_required", { feature: "webhooks", meter: "integrations" });
   if ((await listFormWebhooks(db, ctx.org.id, id)).length >= 5) throw new HttpError(400, "too_many_endpoints");
   const secret = newWebhookSecret();
   const ep = await db.createWebhookEndpoint({ id: uuidv7(), orgId: ctx.org.id, formId: id, url: body.url, events: body.events, enabled: true, secret });

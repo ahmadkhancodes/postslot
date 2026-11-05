@@ -5,7 +5,7 @@ import { getDb } from "@/lib/db";
 import { HttpError, json, readJson, withApi } from "@/lib/http";
 import { uuidv7 } from "@/lib/ids";
 import { isSafeWebhookUrl, newWebhookSecret } from "@/lib/webhooks/outbound";
-import { webhooksAllowed } from "@/lib/webhooks/submissions";
+import { webhookSlotAvailable, webhooksAllowed } from "@/lib/webhooks/submissions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +26,7 @@ export const POST = withApi(async (req) => {
   if (!isSafeWebhookUrl(body.url)) throw new HttpError(400, "unsafe_url");
   const db = await getDb();
   if (!(await webhooksAllowed(db, ctx.org.id))) throw new HttpError(403, "plan_required", { feature: "webhooks" });
+  if (!(await webhookSlotAvailable(db, ctx.org.id))) throw new HttpError(403, "plan_required", { feature: "webhooks", meter: "integrations" });
   if ((await db.listWebhookEndpoints(ctx.org.id)).length >= 20) throw new HttpError(400, "too_many_endpoints");
   const secret = newWebhookSecret();
   const ep = await db.createWebhookEndpoint({ id: uuidv7(), orgId: ctx.org.id, url: body.url, events: body.events, enabled: true, secret });

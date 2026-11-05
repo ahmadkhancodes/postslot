@@ -33,7 +33,8 @@ export async function purgeExpired(db: Db, now = new Date(), opts: { batch?: num
       let days = planDays.get(r.orgId);
       if (days === undefined) planDays.set(r.orgId, (days = retentionDays(effectivePlan(await db.getEntitlement(r.orgId), now.getTime()).id)));
       const until = r.receivedAt.getTime() + days * 864e5;
-      if (until > now.getTime()) {
+      // Test submissions keep their own 7 day stamp; only real rows get the longer history of an upgraded plan.
+      if (until > now.getTime() && !r.isTest) {
         await subs.update({ _id: r._id }, { purgeAt: new Date(until) });
         kept++;
       } else drop.push(r);

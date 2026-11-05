@@ -95,3 +95,15 @@ export async function retryQueued(db: Db, deps: Deps = {}, limit = 100): Promise
   }
   return n;
 }
+
+/**
+ * Dispatches a submission that was held for an unverified recipient. The held row is claimed first, so the verify link and
+ * the cron job cannot both send it; if nobody is confirmed after all it goes back to held.
+ */
+export async function dispatchHeldUnverified(db: Db, form: Form, sub: Submission, deps: Deps = {}): Promise<boolean> {
+  const subs = db.docs<Submission>("submissions");
+  if (!(await subs.update({ _id: sub._id, status: "held", holdReason: "recipient_unverified" }, { status: "sorted", holdReason: undefined }))) return false;
+  if (await dispatchSubmission(db, form, { ...sub, status: "sorted", holdReason: undefined }, deps)) return true;
+  await subs.update({ _id: sub._id }, { status: "held", holdReason: "recipient_unverified" });
+  return false;
+}

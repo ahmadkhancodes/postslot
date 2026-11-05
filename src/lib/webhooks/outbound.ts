@@ -60,6 +60,9 @@ export async function attemptDelivery(
   let code: number | null = null;
   let error: string | null = null;
   try {
+    // Real network only (tests inject fetchFn): the host must resolve to public addresses, so a DNS name that points at a
+    // private or link-local address cannot be used to reach internal services.
+    if (!opts.fetchFn && process.env.NODE_ENV === "production" && !(await resolvesPublic(new URL(ep.url).hostname))) throw Object.assign(new Error("unsafe_target"), { name: "UnsafeTarget" });
     const ctrl = AbortSignal.timeout(10_000);
     const res = await fetchFn(ep.url, {
       method: "POST",
@@ -77,7 +80,8 @@ export async function attemptDelivery(
     code = res.status;
     if (!res.ok) error = `http_${res.status}`;
   } catch (e) {
-    error = (e as Error).name === "TimeoutError" ? "timeout" : "network_error";
+    const name = (e as Error).name;
+    error = name === "TimeoutError" ? "timeout" : name === "UnsafeTarget" ? "unsafe_target" : "network_error";
   }
   const ok = !error;
   const patch: Partial<WebhookDelivery> = {
@@ -137,4 +141,31 @@ export function isSafeWebhookUrl(raw: string): boolean {
   if (/^(127\.|10\.|192\.168\.|169\.254\.|0\.)/.test(h) || /^172\.(1[6-9]|2\d|3[01])\./.test(h)) return false;
   if (h.startsWith("[") || h === "::1") return false;
   return true;
+}
+
+/** True for loopback, private, link-local, CGNAT, multicast, reserved and unspecified IPv4/IPv6 addresses. */
+export function isPrivateIp(ip: string): boolean {
+  const v = ip.toLowerCase().replace(/^::ffff:/, "");
+  const m = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(v);
+  if (m) {
+    const [a, b] = [Number(m[1]), Number(m[2])];
+    return a === 0 || a === 10 || a === 127 || a >= 224 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || (a === 192 && b === 0) || (a === 198 && (b === 18 || b === 19));
+  }
+  return v === "::" || v === "::1" || /^f[cd]/.test(v) || /^fe[89ab]/.test(v) || /^ff/.test(v);
+}
+
+/** Resolves every address of `host`; false when any is private or the lookup fails. */
+export async function resolvesPublic(host: string, lookup: (h: string) => Promise<{ address: string }[]> = defaultLookup): Promise<boolean> {
+  try {
+    const addrs = await lookup(host.replace(/^\[|\]$/g, ""));
+    return addrs.length > 0 && addrs.every((a) => !isPrivateIp(a.address));
+  } catch {
+    return false;
+  }
+}
+
+async function defaultLookup(h: string) {
+  const { lookup } = await import("node:dns/promises");
+  return lookup(h, { all: true, verbatim: true });
 }

@@ -120,7 +120,7 @@ const features: Feature[] = [
   },
   {
     title: "Also included",
-    body: `90 day history on the Free plan, CSV and JSON export on every plan, a custom sending domain on Pro and ${freePlan.limits.submissions} submissions a month for free.`,
+    body: `90 day history on the Free plan, CSV and JSON export on every plan, signed webhooks from Starter and ${freePlan.limits.submissions} submissions a month for free.`,
     span: 6,
   },
 ];
@@ -139,11 +139,11 @@ const faq: FaqItem[] = [
   { q: "Web3Forms free already works. Why switch?", a: "It does, and moving is one action URL. Switch if you want a delivery log per submission, 90 days of history on Free instead of 30, and held submissions instead of rejected ones at the limit." },
   { q: "Will the emails land in spam?", a: "We cannot promise inbox placement for any sender. The receipt shows whether the recipient's server accepted a message or deferred it, so you see problems the day they happen." },
   { q: "Is it safe to paste the form key in my HTML?", a: "Yes. The key is public by design, like a form action URL. Lock it to your domain in the form's allowed domains and it only accepts submissions from there." },
-  { q: "What counts toward my limit?", a: "Delivered legitimate submissions. Spam and test submissions do not count." },
+  { q: "What counts toward my limit?", a: "Legitimate submissions, counted once when they pass the spam check. Spam and test submissions never count, submissions held over the limit count only when released, and marking one as spam gives the unit back." },
   { q: "What happens when I go over the limit?", a: "We keep accepting. Extra submissions are held in your inbox and released when you upgrade or the month resets. You get a notice at 80% and 100%." },
-  { q: "Will my AI builder understand this?", a: "Yes. There are copy paste prompts for Lovable, Bolt, v0 and Claude Code with your key filled in, and llms.txt docs. AI builders often generate a handler that only logs to the console; the prompt replaces it." },
-  { q: "Do real visitors get a captcha?", a: "No puzzle. Our proof of work check runs invisibly and is hosted by us; no request leaves our infrastructure." },
-  { q: "What if Postslot goes down?", a: "Ingest is built to keep accepting submissions and replay them. We publish uptime only once we have measured it." },
+  { q: "Will my AI builder understand this?", a: "Yes. The install guide shows what to ask Lovable, Bolt, v0 and Claude Code for, and the docs are also published as plain text at /llms.txt. AI builders often generate a handler that only logs to the console; point it at your endpoint instead." },
+  { q: "Do real visitors get a captcha?", a: "No puzzle. The default layers (honeypot, time token, rules and a learning filter) are invisible. You can also turn on a proof of work check per form; it runs in the browser without a puzzle and is hosted by us." },
+  { q: "What if Postslot goes down?", a: "A submission is saved before the visitor sees success, and delivery is retried until it finishes. If saving fails, the visitor gets a clear error to try again, never a false success. We publish uptime only once we have measured it." },
   { q: "Do you offer a DPA, SOC 2 or HIPAA?", a: "A DPA is on every plan. We do not offer SOC 2, SSO or HIPAA forms." },
   { q: "How hard is moving from Web3Forms or Formspree?", a: "Change one action URL and the hidden field names if you used custom ones. The compare pages list the differences." },
 ];
