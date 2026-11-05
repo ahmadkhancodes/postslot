@@ -5,7 +5,10 @@
 - Checks: lint (0 errors), typecheck, 45 unit tests, build, 2 Playwright e2e (magic link -> org -> entitlement -> API key -> cron -> export; 375px overflow).
 - Screenshots: `docs/qa/kit-v1/` (375/1440, light/dark).
 - Stripe test catalogue created (docs/STRIPE.md). Vercel project `postslot` created on the new account with generated secrets.
+- **Mongo URI pending** (orchestrator: do not block kit-v1 on it).
 - **Blocked on owner/orchestrator:** Atlas DB user `postslot-app` (connector needs an interactive confirmation); `STRIPE_SECRET_KEY_TEST`; `RESEND_API_KEY`. Running in stub mode until then.
+
+- Live: https://postslot.vercel.app (public, health ok, magic-link send ok). Full live flow (verify -> org -> checkout -> portal) waits on Mongo + Stripe key; proven locally by Playwright e2e on the memory driver.
 
 ## Next
 1. Merge PR, deploy, tag `kit-v1`, notify orchestrator.

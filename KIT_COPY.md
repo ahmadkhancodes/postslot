@@ -17,7 +17,7 @@ Keep your repo's own `CLAUDE.md`, `docs/brief.md` and memory files. Take `docs/f
 1. `src/config/product.ts`: `slug` (lowercase, also the DB name, cookie prefix and Stripe lookup-key prefix), `name`, `fullName`, `host`, `url`, `mailFrom`, `description`, `tagline`, `legal`, `subProcessors`, `plans` (real prices in cents, limits per meter, highlights), `graceDays`, `flags`, `nav`. Keep every plan's `lookupKey` shape `${slug}_${plan}_${monthly|annual}` (the `price()` helper does it).
    If your meters differ, edit the `MeterId` union at the top.
 2. `package.json` `name` = slug. `infra/cron-worker/wrangler.toml` `name` and `APP_URL`.
-3. Visual system from your `docs/DESIGN.md`: replace ONLY the values in the two `:root` blocks of `src/app/globals.css` (raw ramp, accent, role tokens for light and dark) and the two font lines in `src/app/fonts.ts`. Components reference role tokens only.
+3. Design: primary colour family must not repeat another BufferSol product (orchestrator keeps PALETTE_REGISTRY.md). Visual system from your `docs/DESIGN.md`: replace ONLY the values in the two `:root` blocks of `src/app/globals.css` (raw ramp, accent, role tokens for light and dark) and the two font lines in `src/app/fonts.ts`. Components reference role tokens only.
 4. Replace the sample landing `src/app/(marketing)/page.tsx` and the demo `src/components/marketing/demo/*` with your product's sections and real UI. Replace `src/app/app/page.tsx` with your main screen. Update `src/content/compare.ts`, `src/content/docs/*`.
 5. `grep -rn "postslot\|Postslot" src scripts infra` must only hit `product.ts` (and your own content).
 
@@ -27,7 +27,7 @@ Keep your repo's own `CLAUDE.md`, `docs/brief.md` and memory files. Take `docs/f
 - **Stripe** (test mode, `acct_1N578JBkP5VKCzMY`): `STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY_TEST npm run stripe:setup` (idempotent, refuses other apps' keys). Or create the same objects with the Stripe connector: every product/price `metadata.app=<slug>`, lookup keys `<slug>_...`. Record ids in `docs/STRIPE.md`.
   After the first deploy create a webhook endpoint `<url>/api/stripe/webhook` for `checkout.session.completed, customer.subscription.created, customer.subscription.updated, customer.subscription.deleted, invoice.paid, invoice.payment_failed, charge.refunded, payment_intent.succeeded` and put its `whsec_` in `STRIPE_WEBHOOK_SECRET`.
   Enable the Customer Portal (test mode) once per account: https://dashboard.stripe.com/test/settings/billing/portal
-- **Vercel** (new account, `VERCEL_TOKEN_NEW_ACCOUNT`): `npx vercel link --yes --project <slug> --token "$VERCEL_TOKEN_NEW_ACCOUNT"`, then set Production env:
+- **Vercel: deploy ONLY to the new account** (team `ahmad-code`, id `team_rbOXRpz6zmliuGsw8eIh3YDw`) with `VERCEL_TOKEN_NEW_ACCOUNT` via CLI/REST. Never use `VERCEL_TOKEN` or the Vercel MCP connector: both point at the OLD account, which is at its limit. Project creation: `curl -X POST -H "Authorization: Bearer $VERCEL_TOKEN_NEW_ACCOUNT" "https://api.vercel.com/v11/projects?teamId=team_rbOXRpz6zmliuGsw8eIh3YDw" -d '{"name":"<slug>","framework":"nextjs"}'`. Then: `npx vercel link --yes --project <slug> --scope team_rbOXRpz6zmliuGsw8eIh3YDw --token "$VERCEL_TOKEN_NEW_ACCOUNT"`, then set Production env:
   `APP_NAME, NEXT_PUBLIC_APP_URL, MONGODB_URI, MONGODB_DB, BETTER_AUTH_SECRET (openssl rand -base64 32), STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, MAIL_PROVIDER (console|resend), RESEND_API_KEY, MAIL_FROM, CRON_SECRET, ALTCHA_HMAC_KEY, ADMIN_EMAILS, APP_FLAGS`
   (`printf %s "$VALUE" | npx vercel env add NAME production --token ...`). Stub mode: without `MONGODB_URI` the app runs on the memory driver; without Stripe keys checkout answers 503 `billing_unavailable`; with `MAIL_PROVIDER=console` + `MAIL_CONSOLE_PRINT=1` magic links appear in the function logs.
 - **Deploy**: `scripts/deploy.sh <slug>` (deploys prod, then runs `scripts/vercel-keep-latest-3.sh <slug>`).
@@ -70,3 +70,4 @@ Design gate: score `docs/factory/DESIGN_PLAYBOOK.md` §9 into `docs/design-qa.md
 - Never trust a client flag for plans: gate with `requirePlan()` on the server.
 - Cookie-auth POST/PATCH/DELETE go through `withApi()` (Origin check). Signed endpoints (Stripe, unsubscribe, cron) opt out explicitly.
 - Next.js 16: middleware is `src/proxy.ts`; Cache Components are off (decision D-K3).
+- Cloud sessions cannot push tags through the git proxy: run the "Create tag" workflow (`.github/workflows/tag.yml`) instead.
