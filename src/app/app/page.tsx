@@ -8,7 +8,7 @@ import { StatusChip } from "@/components/marketing/demo/receipt";
 import { buttonClass } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
 import { Input, Select } from "@/components/ui/field";
-import { EmptyState, Notice } from "@/components/ui/states";
+import { Badge, EmptyState, Notice } from "@/components/ui/states";
 import { can } from "@/lib/auth/roles";
 import { requireOrg } from "@/lib/auth/session";
 import { currentUsage } from "@/lib/billing/usage";
@@ -103,6 +103,7 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
         </div>
         <button type="submit" className={buttonClass("secondary", "md")}>Search</button>
       </form>
+      <p className="-mt-3 caption-2 text-text-subtle">Search matches whole words, so “jam” will not find “jamie”. Use several words to match any of them, “quotes” for an exact phrase and a leading minus to leave a word out.</p>
 
       <nav aria-label="Filter" className="-mx-1 flex gap-1 overflow-x-auto px-1">
         {INBOX_FILTERS.map((f) => (
@@ -133,7 +134,10 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
                       <span className="shrink-0 font-mono text-xs text-text-muted">{shortWhen(s.receivedAt)}</span>
                     </span>
                     <span className="caption-2 line-clamp-2 text-text-subtle">{previewOf(s)}</span>
-                    <span><StatusChip status={chipFor(s)} /></span>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <StatusChip status={chipFor(s)} />
+                      {s.isTest ? <Badge tone="info">Test submission</Badge> : null}
+                    </span>
                   </Link>
                 </li>
               ))}

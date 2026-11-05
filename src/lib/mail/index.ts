@@ -2,7 +2,8 @@ import { product } from "@/config/product";
 import { appUrl, env } from "@/lib/env";
 import { getDb } from "@/lib/db";
 import { hmacSha256Hex } from "@/lib/ids";
-import { consoleTransport, resendTransport, smtpTransport } from "./transports";
+import { smtpTransport } from "./smtp";
+import { consoleTransport, resendTransport } from "./transports";
 import type { MailMessage, MailTransport, SendResult } from "./types";
 
 export type { MailMessage, MailTransport, SendResult } from "./types";

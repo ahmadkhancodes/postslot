@@ -1,5 +1,6 @@
 import { Postmark } from "@/components/marketing/demo/postmark";
 import { StatusChip, Timeline } from "@/components/marketing/demo/receipt";
+import { Badge } from "@/components/ui/states";
 import { timelineOpen } from "@/lib/delivery/timeline";
 import type { Detail } from "@/lib/inbox/query";
 import { AutoRefresh } from "./auto-refresh";
@@ -29,7 +30,10 @@ export function SubmissionDetail({ d, canWrite }: { d: Detail; canWrite: boolean
               {s.replyTo ? <>{s.replyTo} · </> : null}to {d.form?.name ?? "deleted form"} · <time dateTime={s.receivedAt.toISOString()}>{dayStamp(s.receivedAt)} {clock(s.receivedAt)} UTC</time>
             </p>
           </div>
-          <StatusChip status={chipFor(s)} />
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusChip status={chipFor(s)} />
+            {s.isTest ? <Badge tone="info">Test submission, not counted</Badge> : null}
+          </div>
         </div>
         <DetailActions id={s._id} status={s.status} canWrite={canWrite} />
       </header>

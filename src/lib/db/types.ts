@@ -3,7 +3,7 @@
 // Billing is per organization ("subject" = org id). Every document carries `app` so a shared cluster stays safe.
 // TTL fields are BSON Dates (the apps stored numbers, so Mongo TTL never fired: BACKEND_REUSE 1.5).
 
-import type { PlanId } from "@/config/product";
+import type { MeterId, PlanId } from "@/config/product";
 
 export type EntitlementStatus = "none" | "trialing" | "active" | "past_due" | "canceled" | "lifetime";
 
@@ -23,6 +23,8 @@ export interface Entitlement {
   lifetimePaymentIntentId: string | null;
   /** First time we saw past_due (for grace-period display). */
   pastDueSince: number | null;
+  /** Founder-set per-meter limits that win over the plan (admin "adjust limit"). Kept across Stripe recomputes. */
+  limitOverrides?: Partial<Record<MeterId, number>>;
 }
 
 export interface BillingAccount {
@@ -147,6 +149,8 @@ export interface Db {
   addSuppression(s: Omit<Suppression, "at"> & { at?: Date }): Promise<void>;
   isSuppressed(email: string, scope?: string): Promise<boolean>;
   removeSuppression(email: string, scope?: string): Promise<void>;
+  /** Newest first. `q` = case-insensitive substring of the address. Founder admin only. */
+  listSuppressions(opts?: { q?: string; limit?: number }): Promise<Suppression[]>;
 
   // remote flags
   getConfig(): Promise<Record<string, string>>;
@@ -160,4 +164,4 @@ export interface Db {
 export const DELIVERY_TTL_DAYS = 90;
 
 /** Collections that hold an `orgId` and are exported/deleted with the org (privacy). */
-export const ORG_DOC_COLLECTIONS = ["forms", "recipients", "submissions", "deliveries", "delivery_events", "sender_allow", "bayes_tokens", "usage_notices"] as const;
+export const ORG_DOC_COLLECTIONS = ["forms", "recipients", "submissions", "deliveries", "delivery_events", "sender_allow", "bayes_tokens", "usage_notices", "sender_domains", "org_flags"] as const;

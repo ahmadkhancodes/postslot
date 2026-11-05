@@ -42,6 +42,9 @@ export interface Form {
   /** Blocked-origin troubleshooting email: when it was last sent and the blockedCount at that time. */
   troubleshootSentAt?: Date;
   troubleshootAtCount?: number;
+  /** Set by the founder admin on suspend, so unsuspend restores the earlier state. */
+  preSuspendStatus?: "active" | "paused";
+  suspendedBy?: string;
   createdAt: Date;
 }
 
