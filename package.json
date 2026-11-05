@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run",
+    "stripe:setup": "tsx scripts/stripe-setup.ts",
+    "db:indexes": "tsx scripts/ensure-indexes.ts",
+    "screenshots": "tsx scripts/screenshots.ts",
+    "deploy": "scripts/deploy.sh"
   },
   "dependencies": {
     "@better-auth/api-key": "^1.7.17",

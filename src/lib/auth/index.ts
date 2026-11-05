@@ -40,7 +40,7 @@ async function database(): Promise<BetterAuthOptions["database"]> {
   if (dbDriver(e) === "memory") {
     globalThis.__kitAuthMemory ??= {
       user: [], session: [], account: [], verification: [], organization: [], member: [], invitation: [],
-      twoFactor: [], passkey: [], apikey: [],
+      twoFactor: [], passkey: [], apikey: [], rateLimit: [],
     };
     return memoryAdapter(globalThis.__kitAuthMemory as never);
   }
@@ -60,7 +60,7 @@ export function createAuth(db: BetterAuthOptions["database"]) {
     secret: e.BETTER_AUTH_SECRET ?? (isProd() ? undefined : "dev-only-secret-dev-only-secret-0000"),
     database: db,
     trustedOrigins: [base, ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []), ...(process.env.VERCEL_BRANCH_URL ? [`https://${process.env.VERCEL_BRANCH_URL}`] : [])],
-    advanced: { ...cookieConfig(secure), database: { generateId: false } },
+    advanced: cookieConfig(secure),
     session: {
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,

@@ -13,7 +13,9 @@ export function consoleTransport(): MailTransport {
       outbox.push({ ...msg, id, at: new Date() });
       if (outbox.length > 200) outbox.shift();
       log.info("mail_console", { subject: msg.subject, id });
-      if (process.env.NODE_ENV !== "production" && process.env.NODE_ENV !== "test") console.log(`\n--- mail to ${msg.to} ---\n${msg.text}\n---\n`);
+      // Stub mode only (no mail provider yet): MAIL_CONSOLE_PRINT=1 prints the body so magic links can be used from logs.
+      if ((process.env.NODE_ENV === "development" || process.env.MAIL_CONSOLE_PRINT === "1") && process.env.NODE_ENV !== "test")
+        console.log(`\n--- mail ${id} ---\n${msg.text}\n---\n`);
       return { id, provider: "console", accepted: true };
     },
   };
