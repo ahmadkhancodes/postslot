@@ -73,3 +73,10 @@
 - **Checks:** lint 0 errors, typecheck, 207 unit tests (13 new in `tests/unit/review.test.ts`), build, Playwright 6 pass.
 - **Manual:** MANUAL_STEPS items 5 (Cloudflare cron worker) and 6 (human a11y pass, `{{verify}}` cells).
 - **Next:** deploy, `npm run db:indexes`, then the open P1s.
+
+## 6 Nov 2026 (M5 follow-up, not deployed)
+- **P1-9, P1-10, P1-11 fixed** with tests in `tests/unit/m5b.test.ts` (failed first): mail hook answers 409 for a young unknown message id so the provider retries; account deletion removes audit log, org suppressions, form-scoped spam words; `/api/health` returns 503 when Mongo is unreachable (1 s timeout).
+- **`/status`** (static-looking, reads `uptime_checks`, 90 day bar, footer and sitemap link) fed by cron jobs `uptime-probe` (worker, every minute once deployed; add to the worker `JOBS`, done in wrangler.toml) and `canary` (also inside the daily `maintenance` job, so it runs on the Vercel slot).
+- **AI builder prompts** (Lovable, Bolt, v0, Claude Code) on `/docs/install`; they tell the builder to leave `<form_key>` and where to paste the key, no pre-filled claim.
+- **P2 fixed:** P2-5, P2-6, P2-12, P2-8 (Resend named). Left open: P2-3, 4, 7, 9, 10, 11.
+- **On deploy:** `npm run db:indexes` (new `uptime_checks` and `suppressions.scope` indexes).

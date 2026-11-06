@@ -13,3 +13,5 @@
 5. **Deploy the Cloudflare cron worker** (needs `CLOUDFLARE_SAAS_TOKEN` and `CLOUDFLARE_SAAS_ACCOUNT_ID`; an agent can do it once they exist, otherwise: https://dash.cloudflare.com/?to=/:account/workers-and-pages). `infra/cron-worker`: set the worker secret `CRON_SECRET` to the same value as the Vercel env `CRON_SECRET`, `APP_URL` to the production URL, then `npx wrangler deploy`. Until then delivery retries, held releases and the retention purge run once a day from `vercel.json` only (retries after a provider outage can take up to 24 h).
 
 6. **Before paid launch** (from docs/REVIEW.md): have a person do one keyboard-only and screen reader pass of sign-in, inbox and form setup; fill or remove the `{{verify}}` cells on the compare pages after checking the competitors' own pages.
+
+7. **Uptime probe schedule.** `/status` is fed by the `uptime-probe` job, which needs the Cloudflare cron worker (item 5, `JOBS` already lists it). Until the worker runs, `/status` only gets the daily canary from the `maintenance` cron. After deploying, run `npm run db:indexes`.

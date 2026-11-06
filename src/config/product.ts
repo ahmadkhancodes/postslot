@@ -64,7 +64,7 @@ export const product = {
     { name: "Vercel Inc.", purpose: "Hosting and edge network", location: "United States" },
     { name: "MongoDB Inc. (Atlas)", purpose: "Database hosting", location: "United States (AWS us-east-1)" },
     { name: "Stripe Inc.", purpose: "Payments and invoicing", location: "United States" },
-    { name: "Email delivery provider", purpose: "Sending notification and receipt emails", location: "United States" },
+    { name: "Resend", purpose: "Sending notification and receipt emails", location: "United States" },
   ],
   /** The metered unit and what happens at the cap (docs/brief.md Pricing). */
   meter: {
@@ -109,7 +109,7 @@ export const product = {
       tagline: "For one site and a first form",
       prices: [],
       limits: { submissions: 250, seats: 1, recipients: 1, integrations: 0, storage_mb: 0 },
-      highlights: ["250 submissions a month, spam never counts", "Unlimited forms and domains", "1 verified recipient", "90 day history, CSV export", "7 day delivery log"],
+      highlights: ["250 submissions a month, spam never counts", "Unlimited forms and domains", "1 verified recipient", "90 day history, CSV export", "Delivery receipts for every email"],
       cta: "Start free",
       trialDays: 0,
       retentionDays: 90,

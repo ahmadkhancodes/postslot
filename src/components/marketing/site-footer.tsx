@@ -8,6 +8,7 @@ const columns = [
       { href: "/pricing", label: "Pricing" },
       { href: "/docs", label: "Docs" },
       { href: "/compare/web3forms", label: "Compare" },
+      { href: "/status", label: "Status" },
     ],
   },
   {

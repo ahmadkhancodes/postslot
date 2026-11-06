@@ -91,7 +91,7 @@ export function dbContract(name: string, make: () => Promise<Db>) {
       expect(await db.listSuppressions({ q: tag, limit: 1 })).toHaveLength(1);
     });
 
-    it("deleteOrgData removes billing + webhooks but keeps the audit log", async () => {
+    it("deleteOrgData removes billing, webhooks and the audit log", async () => {
       const db = await make();
       const org = `org_${Math.random()}`;
       await db.upsertBillingAccount({ id: org, stripeCustomerId: `cus_${org}`, email: null });
@@ -104,7 +104,7 @@ export function dbContract(name: string, make: () => Promise<Db>) {
       expect(await db.getBillingAccount(org)).toBeNull();
       expect(await db.getEntitlement(org)).toBeNull();
       expect(await db.listWebhookEndpoints(org)).toEqual([]);
-      expect((await db.listAudit(org)).length).toBe(1);
+      expect(await db.listAudit(org)).toEqual([]);
     });
 
     it("config round trip", async () => {

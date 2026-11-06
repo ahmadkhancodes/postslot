@@ -1,5 +1,5 @@
 import { getDb } from "@/lib/db";
-import { applyMailEvent } from "@/lib/delivery/events";
+import { applyMailEvent, retryableUnknown } from "@/lib/delivery/events";
 import { env } from "@/lib/env";
 import { json } from "@/lib/http";
 import { log } from "@/lib/logger";
@@ -30,5 +30,7 @@ export async function POST(req: Request) {
       return json({ error: "server_error" }, 500); // the provider retries
     }
   }
+  // Event for a message id we have not saved yet (the send call has not returned): let the provider retry it.
+  if (retryableUnknown(events, results)) return json({ error: "message_not_yet_known", results }, 409);
   return json({ ok: true, results });
 }

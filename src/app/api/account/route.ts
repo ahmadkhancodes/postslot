@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/auth/session";
 import { cancelAppSubscriptions } from "@/lib/billing/entitlement";
 import { getStripe } from "@/lib/billing/stripe";
 import { getDb } from "@/lib/db";
-import { clientIp, json, readJson, withApi } from "@/lib/http";
+import { json, readJson, withApi } from "@/lib/http";
 import { enforceRateLimit, RULES } from "@/lib/security/ratelimit";
 
 export const runtime = "nodejs";
@@ -38,7 +38,8 @@ export const DELETE = withApi(async (req) => {
     if (stripe && acct?.stripeCustomerId) await cancelAppSubscriptions(stripe, db.app, acct.stripeCustomerId);
     await db.deleteOrgData(o.id);
     await auth.api.deleteOrganization({ headers: h, body: { organizationId: o.id } });
-    await audit({ orgId: o.id, actorId: user.id, action: "org.deleted", ip: clientIp(req) });
+    // The workspace audit log was deleted with it; this record carries no IP and no org link.
+    await audit({ orgId: null, actorId: user.id, action: "org.deleted", meta: { org: o.id } });
   }
   await auth.api.deleteUser({ headers: h, body: {} });
   return json({ deleted: true });

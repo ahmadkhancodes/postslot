@@ -256,7 +256,9 @@ export function createMemoryDb(app: string, config: Record<string, string> = {})
       for (const [k, e] of endpoints) if (e.orgId === orgId) endpoints.delete(k);
       for (const [k, d] of deliveries) if (d.orgId === orgId) deliveries.delete(k);
       for (const c of ORG_DOC_COLLECTIONS) await this.docs(c).delete({ orgId });
-      // The audit log is append-only: entries are kept (no PII beyond ids) per the privacy policy.
+      // Account deletion removes the audit entries (they hold IPs) and the workspace's own suppression entries.
+      for (let i = audit.length - 1; i >= 0; i--) if (audit[i]!.orgId === orgId) audit.splice(i, 1);
+      for (const [k, s] of suppressions) if (s.scope === `org:${orgId}`) suppressions.delete(k);
     },
   };
 }

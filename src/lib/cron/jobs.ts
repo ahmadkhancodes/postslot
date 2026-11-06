@@ -2,6 +2,7 @@ import { getDb } from "@/lib/db";
 import type { Db } from "@/lib/db/types";
 import { deliverPending } from "@/lib/delivery/process";
 import { purgeExpired } from "@/lib/inbox/purge";
+import { runCanary, runProbe } from "@/lib/status";
 import { retryDueDeliveries } from "@/lib/webhooks/outbound";
 
 /** Register cron jobs here. Each must be idempotent and finish well inside maxDuration. */
@@ -10,7 +11,11 @@ export const cronJobs: Record<string, () => Promise<unknown>> = {
   "deliver-pending": async () => deliverPending(await getDb()),
   "retention-purge": async () => purgeExpired(await getDb()),
   /** Daily Vercel Cron fallback (Hobby allows two daily crons): webhook retries and the retention purge, so retention runs even without the worker. */
-  maintenance: async () => ({ webhooks: await retryDueDeliveries({ limit: 100 }), purge: await purgeExpired(await getDb()) }),
+  maintenance: async () => ({ webhooks: await retryDueDeliveries({ limit: 100 }), purge: await purgeExpired(await getDb()), canary: await runCanary(await getDb()) }),
+  /** Feeds /status: database ping plus the health endpoint. Fine-grained schedules come from the worker. */
+  "uptime-probe": async () => runProbe(await getDb()),
+  /** Daily end-to-end check of the public paths (also part of `maintenance`, so it runs on the Vercel daily slot). */
+  canary: async () => runCanary(await getDb()),
   heartbeat: async () => ({ at: new Date().toISOString() }),
 };
 
