@@ -68,7 +68,7 @@ export async function handleFormPost(db: Db, req: Request, key: string, deps: De
     }
 
     const ipHash = (await hmacSha256Hex(ipSecret(), clientIp(req))).slice(0, 24);
-    if ((await limited(db, `ip:${ipHash}`, RULES.formIp)) || (await limited(db, `form:${form._id}`, RULES.formKey)))
+    if ((await limited(db, `ip:${form._id}:${ipHash}`, RULES.formIp)) || (await limited(db, `form:${form._id}`, RULES.formKey)))
       return fail(asJson, 429, "rate_limited", { "retry-after": "60" });
 
     const { fields: raw, kind } = await parseBody(req);

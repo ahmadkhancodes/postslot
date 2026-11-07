@@ -59,6 +59,12 @@ export async function applyMailEvent(db: Db, ev: MailEvent, deps: EmitDeps = {})
   }
 }
 
+/** A provider event can beat our save of `mailerMessageId` by a few ms. For a young event nobody knows yet, the route answers 409 so the provider retries. */
+export const UNKNOWN_RETRY_WINDOW_MS = 10 * 60_000;
+export function retryableUnknown(events: Pick<MailEvent, "at">[], results: string[], now = Date.now()): boolean {
+  return results.some((r, i) => r === "unknown" && events[i] && now - events[i]!.at.getTime() < UNKNOWN_RETRY_WINDOW_MS);
+}
+
 async function applyClaimed(db: Db, ev: MailEvent, deps: EmitDeps): Promise<ApplyResult> {
   const deliveries = db.docs<Delivery>("deliveries");
   const d = await deliveries.findOne({ mailerMessageId: ev.messageId });

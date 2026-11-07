@@ -270,6 +270,8 @@ export function createMongoDb(uri: string, dbName: string, app: string): Db {
       await d.collection("usage").deleteMany({ app, orgId });
       await d.collection("webhook_endpoints").deleteMany({ app, orgId });
       await d.collection("webhook_deliveries").deleteMany({ app, orgId });
+      await d.collection("audit_log").deleteMany({ app, orgId });
+      await d.collection("suppressions").deleteMany({ app, scope: `org:${orgId}` });
       for (const c of ORG_DOC_COLLECTIONS) await d.collection(c).deleteMany({ app, orgId });
     },
   };
@@ -288,6 +290,9 @@ export async function ensureIndexes(uri: string, dbName: string) {
   await d.collection("webhook_deliveries").createIndex({ app: 1, status: 1, nextAttemptAt: 1 });
   await d.collection("webhook_deliveries").createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
   await d.collection("suppressions").createIndex({ app: 1, email: 1 });
+  await d.collection("suppressions").createIndex({ app: 1, scope: 1 });
+  await d.collection("uptime_checks").createIndex({ at: -1 });
+  await d.collection("uptime_checks").createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
   // Postslot collections (docs/ARCHITECTURE.md section 2)
   await d.collection("forms").createIndex({ key: 1 }, { unique: true });
   await d.collection("forms").createIndex({ app: 1, orgId: 1, createdAt: -1 });
