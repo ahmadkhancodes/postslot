@@ -277,51 +277,89 @@ export function createMongoDb(uri: string, dbName: string, app: string): Db {
   };
 }
 
-/** Indexes, created once by scripts/ensure-indexes.ts (never per cold start). TTLs are on Date fields. */
+type IndexDb = { collection(name: string): { createIndex(keys: Record<string, unknown>, opts?: Record<string, unknown>): Promise<unknown> } };
+
+/** Indexes. TTLs are on Date fields. Run lazily by scheduleEnsureIndexes() and manually by scripts/ensure-indexes.ts. */
 export async function ensureIndexes(uri: string, dbName: string) {
-  const d = (await mongoClient(uri)).db(dbName);
-  await d.collection("billing_accounts").createIndex({ app: 1, stripeCustomerId: 1 }, { unique: true, partialFilterExpression: { stripeCustomerId: { $type: "string" } } });
-  await d.collection("stripe_events").createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
-  await d.collection("rate_limits").createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
-  await d.collection("usage").createIndex({ app: 1, orgId: 1, period: 1 });
-  await d.collection("audit_log").createIndex({ app: 1, orgId: 1, at: -1 });
-  await d.collection("webhook_endpoints").createIndex({ app: 1, orgId: 1 });
-  await d.collection("webhook_deliveries").createIndex({ app: 1, orgId: 1, createdAt: -1 });
-  await d.collection("webhook_deliveries").createIndex({ app: 1, status: 1, nextAttemptAt: 1 });
-  await d.collection("webhook_deliveries").createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
-  await d.collection("suppressions").createIndex({ app: 1, email: 1 });
-  await d.collection("suppressions").createIndex({ app: 1, scope: 1 });
-  await d.collection("uptime_checks").createIndex({ at: -1 });
-  await d.collection("uptime_checks").createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
+  return ensureIndexesOn((await mongoClient(uri)).db(dbName) as unknown as IndexDb);
+}
+
+/** Conflicts (85 same keys other options, 86 same name other keys) are logged, never thrown: the existing index keeps working. */
+export async function ensureIndexesOn(d: IndexDb) {
+  const ix = async (coll: string, keys: Record<string, unknown>, opts?: Record<string, unknown>) => {
+    try {
+      await d.collection(coll).createIndex(keys, opts);
+    } catch (e) {
+      const code = (e as { code?: number }).code;
+      if (code !== 85 && code !== 86) throw e;
+      console.warn(`[db] index conflict on ${coll} (code ${code}), left as is`);
+    }
+  };
+  await ix("billing_accounts", { app: 1, stripeCustomerId: 1 }, { unique: true, partialFilterExpression: { stripeCustomerId: { $type: "string" } } });
+  await ix("stripe_events", { expireAt: 1 }, { expireAfterSeconds: 0 });
+  await ix("rate_limits", { expireAt: 1 }, { expireAfterSeconds: 0 });
+  await ix("usage", { app: 1, orgId: 1, period: 1 });
+  await ix("audit_log", { app: 1, orgId: 1, at: -1 });
+  await ix("webhook_endpoints", { app: 1, orgId: 1 });
+  await ix("webhook_deliveries", { app: 1, orgId: 1, createdAt: -1 });
+  await ix("webhook_deliveries", { app: 1, status: 1, nextAttemptAt: 1 });
+  await ix("webhook_deliveries", { expireAt: 1 }, { expireAfterSeconds: 0 });
+  await ix("suppressions", { app: 1, email: 1 });
+  await ix("suppressions", { app: 1, scope: 1 });
+  await ix("uptime_checks", { at: -1 });
+  await ix("uptime_checks", { expireAt: 1 }, { expireAfterSeconds: 0 });
   // Postslot collections (docs/ARCHITECTURE.md section 2)
-  await d.collection("forms").createIndex({ key: 1 }, { unique: true });
-  await d.collection("forms").createIndex({ app: 1, orgId: 1, createdAt: -1 });
-  await d.collection("recipients").createIndex({ app: 1, orgId: 1, email: 1 }, { unique: true });
-  await d.collection("recipients").createIndex({ verifyTokenHash: 1 });
-  await d.collection("submissions").createIndex({ app: 1, formId: 1, receivedAt: -1 });
-  await d.collection("submissions").createIndex({ app: 1, orgId: 1, status: 1, receivedAt: -1 });
-  await d.collection("submissions").createIndex({ app: 1, orgId: 1, emailLower: 1 });
-  await d.collection("submissions").createIndex({ status: 1, receivedAt: 1 });
+  await ix("forms", { key: 1 }, { unique: true });
+  await ix("forms", { app: 1, orgId: 1, createdAt: -1 });
+  await ix("recipients", { app: 1, orgId: 1, email: 1 }, { unique: true });
+  await ix("recipients", { verifyTokenHash: 1 });
+  await ix("submissions", { app: 1, formId: 1, receivedAt: -1 });
+  await ix("submissions", { app: 1, orgId: 1, status: 1, receivedAt: -1 });
+  await ix("submissions", { app: 1, orgId: 1, emailLower: 1 });
+  await ix("submissions", { status: 1, receivedAt: 1 });
   // Retention is enforced by the `retention-purge` cron job (it writes an audit entry), not by a TTL index.
-  await d.collection("submissions").createIndex({ purgeAt: 1 });
+  await ix("submissions", { purgeAt: 1 });
   // Inbox search: whole-word text search. default_language "none" = no stemming, emails and names tokenise predictably.
-  await d.collection("submissions").createIndex({ app: 1, orgId: 1, searchText: "text" }, { name: "submissions_search", default_language: "none" });
-  await d.collection("deliveries").createIndex({ mailerMessageId: 1 }, { unique: true, sparse: true });
-  await d.collection("deliveries").createIndex({ submissionId: 1 });
-  await d.collection("deliveries").createIndex({ status: 1, nextAttemptAt: 1 });
-  await d.collection("delivery_events").createIndex({ submissionId: 1, at: 1 });
-  await d.collection("delivery_events").createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
-  await d.collection("sender_allow").createIndex({ app: 1, formId: 1, email: 1 }, { unique: true });
-  await d.collection("bayes_tokens").createIndex({ app: 1, scope: 1, token: 1 }, { unique: true });
-  await d.collection("mail_inbound_events").createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
+  await ix("submissions", { app: 1, orgId: 1, searchText: "text" }, { name: "submissions_search", default_language: "none" });
+  await ix("deliveries", { mailerMessageId: 1 }, { unique: true, sparse: true });
+  await ix("deliveries", { submissionId: 1 });
+  await ix("deliveries", { status: 1, nextAttemptAt: 1 });
+  await ix("delivery_events", { submissionId: 1, at: 1 });
+  await ix("delivery_events", { expireAt: 1 }, { expireAfterSeconds: 0 });
+  await ix("sender_allow", { app: 1, formId: 1, email: 1 }, { unique: true });
+  await ix("bayes_tokens", { app: 1, scope: 1, token: 1 }, { unique: true });
+  await ix("mail_inbound_events", { expireAt: 1 }, { expireAfterSeconds: 0 });
   // Better Auth collections
-  await d.collection("user").createIndex({ email: 1 }, { unique: true });
-  await d.collection("session").createIndex({ token: 1 }, { unique: true });
-  await d.collection("session").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-  await d.collection("verification").createIndex({ identifier: 1 });
-  await d.collection("verification").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-  await d.collection("member").createIndex({ organizationId: 1, userId: 1 }, { unique: true });
-  await d.collection("organization").createIndex({ slug: 1 }, { unique: true });
-  await d.collection("apikey").createIndex({ key: 1 });
+  await ix("user", { email: 1 }, { unique: true });
+  await ix("session", { token: 1 }, { unique: true });
+  await ix("session", { expiresAt: 1 }, { expireAfterSeconds: 0 });
+  await ix("verification", { identifier: 1 });
+  await ix("verification", { expiresAt: 1 }, { expireAfterSeconds: 0 });
+  await ix("member", { organizationId: 1, userId: 1 }, { unique: true });
+  await ix("organization", { slug: 1 }, { unique: true });
+  await ix("apikey", { key: 1 });
   return DELIVERY_TTL_DAYS;
+}
+
+declare global {
+  var __kitIndexes: { key: string; p: Promise<void> } | undefined;
+}
+
+const scrub = (e: unknown) => String((e as Error)?.message ?? e).replace(/mongodb(\+srv)?:\/\/\S+/gi, "[uri]").slice(0, 200);
+
+/**
+ * Fire and forget, once per server instance. Never at build time, never awaited by requests, never throws.
+ * On failure the memo is cleared so the next getDb() call retries. createIndex is idempotent, so concurrent instances are safe.
+ */
+export function scheduleEnsureIndexes(key: string, run: () => Promise<unknown>): void {
+  if (process.env.NEXT_PHASE === "phase-production-build") return;
+  if (globalThis.__kitIndexes?.key === key) return;
+  const p = Promise.resolve()
+    .then(run)
+    .then(() => undefined)
+    .catch((e) => {
+      console.warn(`[db] ensureIndexes failed, will retry: ${scrub(e)}`);
+      if (globalThis.__kitIndexes?.p === p) globalThis.__kitIndexes = undefined;
+    });
+  globalThis.__kitIndexes = { key, p };
 }
