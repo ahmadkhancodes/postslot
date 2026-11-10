@@ -14,6 +14,9 @@ export async function getDb(): Promise<Db> {
   const app = appName(e);
   if (dbDriver(e) === "memory") return (globalThis.__kitMemoryDb ??= createMemoryDb(app));
   if (!e.MONGODB_URI) throw new Error("MONGODB_URI not set");
-  const { createMongoDb } = await import("./mongo");
-  return createMongoDb(e.MONGODB_URI, e.MONGODB_DB ?? app, app);
+  const { createMongoDb, scheduleEnsureIndexes, ensureIndexes } = await import("./mongo");
+  const uri = e.MONGODB_URI;
+  const name = e.MONGODB_DB ?? app;
+  scheduleEnsureIndexes(`${uri}|${name}`, () => ensureIndexes(uri, name));
+  return createMongoDb(uri, name, app);
 }
