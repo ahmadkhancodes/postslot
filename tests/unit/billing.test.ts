@@ -185,3 +185,18 @@ describe("gating", () => {
     expect(requirePlan({ ...e, expiresAt: NOW + 864e5 }, "starter", NOW).id).toBe("pro");
   });
 });
+
+describe("launch hardening: unknown events", () => {
+  const setup = async () => {
+    await createCheckoutSession(f.stripe, db, subject, "pro", "month", urls);
+    return (await db.getBillingAccount("org_1"))!.stripeCustomerId!;
+  };
+  it("answers 200 and records an unknown event type without touching the plan", async () => {
+    const cus = await setup();
+    f.addSub(cus, "postslot_pro_monthly");
+    const res = await hook(event("some.future_event", { customer: cus }, "evt_unknown"));
+    expect(res.status).toBe(200);
+    expect(await db.hasStripeEvent("evt_unknown")).toBe(true);
+    expect((await db.getEntitlement("org_1"))?.isPaid ?? false).toBe(false);
+  });
+});

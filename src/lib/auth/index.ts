@@ -6,6 +6,7 @@ import { passkey } from "@better-auth/passkey";
 import { apiKey } from "@better-auth/api-key";
 import { product } from "@/config/product";
 import { appName, appUrl, dbDriver, env, isProd } from "@/lib/env";
+import { log } from "@/lib/logger";
 import { sendMail } from "@/lib/mail";
 import { inviteEmail, magicLinkEmail } from "@/lib/mail/templates";
 import { isDisposableEmail } from "@/lib/security/disposable";
@@ -93,7 +94,8 @@ export function createAuth(db: BetterAuthOptions["database"]) {
         disableSignUp: false,
         sendMagicLink: async ({ email, url }) => {
           const m = magicLinkEmail(url);
-          await sendMail({ to: email, ...m, category: "transactional" });
+          // A provider rejection must not surface as a 500 or leak its message (it also keeps sign-in from revealing which addresses bounce).
+          await sendMail({ to: email, ...m, category: "transactional" }).catch((e: Error) => log.warn("magic_link_mail_failed", { message: e.message.slice(0, 120) }));
         },
       }),
       twoFactor({ issuer: product.name, skipVerificationOnEnable: false }),
@@ -112,7 +114,7 @@ export function createAuth(db: BetterAuthOptions["database"]) {
         sendInvitationEmail: async (data) => {
           const url = `${base}/accept-invite/${data.id}`;
           const m = inviteEmail({ orgName: data.organization.name, inviter: data.inviter.user.name || data.inviter.user.email, url, role: data.role });
-          await sendMail({ to: data.email, ...m, category: "transactional" });
+          await sendMail({ to: data.email, ...m, category: "transactional" }).catch((e: Error) => log.warn("invite_mail_failed", { message: e.message.slice(0, 120) }));
         },
       }),
       apiKey({

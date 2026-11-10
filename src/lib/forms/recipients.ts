@@ -1,3 +1,4 @@
+import { log } from "@/lib/logger";
 import { appUrl } from "@/lib/env";
 import { randomToken, sha256 } from "@/lib/ids";
 import { sendMail, transportFromEnv, type MailTransport } from "@/lib/mail";
@@ -18,7 +19,14 @@ export async function sendVerification(db: Db, r: Recipient, transport: MailTran
   const token = randomToken(24);
   await db.docs<Recipient>("recipients").update({ _id: r._id }, { verifyTokenHash: await sha256(token), verifySentAt: now });
   const mail = renderVerification(r.email, `${appUrl()}/verify-recipient?t=${token}`);
-  await sendMail({ to: r.email, ...mail, category: "transactional" }, transport);
+  try {
+    await sendMail({ to: r.email, ...mail, category: "transactional" }, transport);
+  } catch (e) {
+    // Provider rejected (bad address, rate limit): never 500 and never leak its message. Free the throttle so the owner can retry.
+    log.warn("verification_mail_failed", { message: (e as Error).message.slice(0, 120) });
+    await db.docs<Recipient>("recipients").update({ _id: r._id }, { verifySentAt: undefined });
+    return false;
+  }
   return true;
 }
 

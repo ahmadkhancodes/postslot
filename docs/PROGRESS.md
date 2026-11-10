@@ -81,3 +81,4 @@
 - **P2 fixed:** P2-5, P2-6, P2-12, P2-8 (Resend named). Left open: P2-3, 4, 7, 9, 10, 11.
 - **On deploy:** `npm run db:indexes` (new `uptime_checks` and `suppressions.scope` indexes).
 - 2026-11-10: indexes now auto-created once per instance on first Mongo getDb() (fire and forget, skipped at build and for memory driver, conflicts/errors logged); `npm run db:indexes` still works. Tests: tests/unit/auto-indexes.test.ts. Not deployed.
+- 2026-11-10 (launch hardening, not deployed): all P1s were already fixed; re-checked money paths (idempotent, out-of-order safe, unknown events 200 + log) and mail paths. Fixed Resend-rejection 500s in recipient confirmation, magic link and invite mail; tests in tests/unit/launch.test.ts. Open: P2-3, 4, 7, 9, 10, 11 and L-5 (late PI after refund).
