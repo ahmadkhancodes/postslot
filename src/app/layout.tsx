@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { product } from "@/config/product";
 import { absoluteUrl } from "@/lib/seo";
-import { themeInitScript } from "@/components/theme";
+import { themeInitScript } from "@/lib/theme-script";
 import { mono, sans } from "./fonts";
 import "./globals.css";
 

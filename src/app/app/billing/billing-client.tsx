@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/components/app/api";
 import { Meter } from "@/components/app/meter";
 import { Panel } from "@/components/app/page-header";
-import { formatDate } from "@/components/app/api";
+import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
 import { Badge, Notice } from "@/components/ui/states";
