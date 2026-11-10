@@ -50,6 +50,7 @@ describe("status", () => {
     const okFetch = (async () => new Response("{}", { status: 200 })) as typeof fetch;
     await runProbe(db, { fetch: okFetch, baseUrl: "http://x" });
     await recordCheck(db, { kind: "probe", ok: false, ms: 10, detail: "boom", at: new Date(Date.now() - 1000) });
+    await new Promise((r) => setTimeout(r, 5)); // distinct timestamps: "latest check" is the newest `at`, a same-millisecond tie made this test flaky
     await runCanary(db, { fetch: (async () => new Response("", { status: 500 })) as typeof fetch, baseUrl: "http://x" });
     const s = await summarizeStatus(db);
     expect(s.days.length).toBe(90);
