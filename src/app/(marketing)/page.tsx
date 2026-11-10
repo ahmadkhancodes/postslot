@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ogImageUrl, twitterImageUrl } from "@/lib/seo";
 import { Section } from "@/components/ui/layout";
 import { ButtonLink } from "@/components/ui/button";
 import {
@@ -19,7 +20,8 @@ export const metadata: Metadata = {
   title: { absolute: title },
   description,
   alternates: { canonical: "/" },
-  openGraph: { title, description, url: "/" },
+  openGraph: { title, description, url: "/", images: [ogImageUrl()] },
+  twitter: { card: "summary_large_image", title, description, images: [twitterImageUrl()] },
 };
 
 const dollars = (cents: number) => `$${cents / 100}`;
@@ -191,7 +193,7 @@ export default function HomePage() {
           <CompareTable caption="Postslot, Web3Forms and Formspree compared" columns={["Postslot", "Web3Forms", "Formspree"]} highlightColumn={0} rows={compareRows} />
         </div>
         <p className="caption-2 mt-4 max-w-2xl text-text-subtle">
-          Checked 3 Nov 2026 from public pricing pages. Not affiliated with Web3Forms or Formspree. Cells marked {"{{verify}}"} are not confirmed yet.{" "}
+          Checked 3 Nov 2026 from public pricing pages. Not affiliated with Web3Forms or Formspree. Cells labelled Unverified are facts we have not confirmed yet.{" "}
           <Link href="/compare/web3forms" className="text-action underline underline-offset-4 hover:text-action-hover focus-visible:focus-ring">Full Web3Forms comparison</Link>
         </p>
       </Section>

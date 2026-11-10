@@ -44,7 +44,7 @@ export const comparisons: CompareEntry[] = [
       { label: "Spam counts toward your quota", values: ["{{verify}}", "Never"] },
       { label: "At the monthly limit", values: ["Hard cap, submissions are rejected", "Held, not dropped"] },
     ],
-    fitNote: "Web3Forms is the better fit if you want the larger, longer established service with a big library of framework guides. Postslot is the better fit if you need to show a client that a specific message arrived. Cells marked {{verify}} are not confirmed yet.",
+    fitNote: "Web3Forms is the better fit if you want the larger, longer established service with a big library of framework guides. Postslot is the better fit if you need to show a client that a specific message arrived. Cells labelled Unverified are facts we have not confirmed yet.",
     checked: "3 Nov 2026",
     source: { label: "Web3Forms pricing (web3forms.com/pricing)", url: "https://web3forms.com/pricing" },
     migration: [

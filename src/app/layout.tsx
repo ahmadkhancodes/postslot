@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { product } from "@/config/product";
+import { absoluteUrl } from "@/lib/seo";
 import { themeInitScript } from "@/components/theme";
 import { mono, sans } from "./fonts";
 import "./globals.css";
@@ -10,8 +11,8 @@ export const metadata: Metadata = {
   title: { default: `${product.fullName}: ${product.tagline}`, template: `%s · ${product.fullName}` },
   description: product.description,
   applicationName: product.fullName,
-  openGraph: { type: "website", siteName: product.fullName, url: product.url },
-  twitter: { card: "summary_large_image" },
+  openGraph: { type: "website", siteName: product.fullName, url: product.url, images: [absoluteUrl("/opengraph-image")] },
+  twitter: { card: "summary_large_image", images: [absoluteUrl("/opengraph-image")] },
   alternates: { canonical: "/" },
 };
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ogImageUrl, twitterImageUrl } from "@/lib/seo";
 import { Section } from "@/components/ui/layout";
 import { PricingTable } from "@/components/marketing/pricing-table";
 import { Faq } from "@/components/marketing/faq";
@@ -15,7 +16,8 @@ export const metadata: Metadata = {
   title,
   description,
   alternates: { canonical: "/pricing" },
-  openGraph: { title: `${title} · ${product.fullName}`, description, url: "/pricing" },
+  openGraph: { title: `${title} · ${product.fullName}`, description, url: "/pricing", images: [ogImageUrl()] },
+  twitter: { card: "summary_large_image", title: `${title} · ${product.fullName}`, description, images: [twitterImageUrl()] },
 };
 
 const billingFaq = [
