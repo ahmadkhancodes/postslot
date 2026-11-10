@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { api, formatDate, useAsync } from "@/components/app/api";
+import { api, useAsync } from "@/components/app/api";
+import { formatDate } from "@/lib/format";
 import { SecretReveal } from "@/components/app/copy-button";
 import { Panel } from "@/components/app/page-header";
 import { Button, ButtonLink } from "@/components/ui/button";

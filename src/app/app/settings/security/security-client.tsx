@@ -1,7 +1,8 @@
 "use client";
 import { Fingerprint, Trash } from "@phosphor-icons/react";
 import { useState } from "react";
-import { authError, formatDate, useAsync } from "@/components/app/api";
+import { authError, useAsync } from "@/components/app/api";
+import { formatDate } from "@/lib/format";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { CopyButton } from "@/components/app/copy-button";
 import { DataTable, Td } from "@/components/app/data-table";

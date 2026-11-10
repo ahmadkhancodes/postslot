@@ -2,7 +2,8 @@
 import { CheckCircle, XCircle } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { api, formatDate } from "@/components/app/api";
+import { api } from "@/components/app/api";
+import { formatDate } from "@/lib/format";
 import { CopyButton } from "@/components/app/copy-button";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
