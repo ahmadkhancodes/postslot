@@ -11,7 +11,7 @@ import { InboxPreview } from "@/components/marketing/demo/inbox-preview";
 import { Postmark } from "@/components/marketing/demo/postmark";
 import { StatusChip, Timeline } from "@/components/marketing/demo/receipt";
 import { InstallSnippet } from "@/components/marketing/install-snippet";
-import { freePlan, planById, product } from "@/config/product";
+import { cadence, freePlan, planById, product } from "@/config/product";
 
 const title = "Postslot by BufferSol: form backend with delivery receipts";
 const description = "Point any HTML form at Postslot by BufferSol. Spam is filtered, mail is delivered and every submission gets a delivery receipt. Free for 250 a month.";
@@ -51,7 +51,7 @@ const steps: Step[] = [
         <p role="note" className="body-6 rounded-sm border border-warning bg-warning-surface p-3 text-text">
           Input <span className="font-mono text-xs">email</span> has no name attribute, so its value will not be sent.
         </p>
-        <p className="caption-5 text-text-subtle">Sample data.</p>
+        <p className="caption-5 text-text-subtle">Illustration with fictional data.</p>
       </div>
     ),
   },
@@ -88,7 +88,7 @@ const features: Feature[] = [
             { name: "Accepted", time: "09:14:19", detail: "Accepted by the recipient's mail server" },
           ]}
         />
-        <p className="caption-5 mt-3 text-text-subtle">Sample data.</p>
+        <p className="caption-5 mt-3 text-text-subtle">Illustration with fictional data.</p>
       </div>
     ),
   },
@@ -110,7 +110,7 @@ const features: Feature[] = [
     visual: (
       <div className="flex flex-col gap-2 p-4">
         <StatusChip status="Held over limit" />
-        <p className="caption-5 text-text-subtle">214 of 250 delivered, 9 spam not counted, 3 held. Sample data.</p>
+        <p className="caption-5 text-text-subtle">214 of 250 delivered, 9 spam not counted, 3 held. Illustration with fictional data.</p>
       </div>
     ),
   },
@@ -145,7 +145,7 @@ const faq: FaqItem[] = [
   { q: "What happens when I go over the limit?", a: "We keep accepting. Extra submissions are held in your inbox and released when you upgrade or the month resets. You get a notice at 80% and 100%." },
   { q: "Will my AI builder understand this?", a: "Yes. The install guide shows what to ask Lovable, Bolt, v0 and Claude Code for, and the docs are also published as plain text at /llms.txt. AI builders often generate a handler that only logs to the console; point it at your endpoint instead." },
   { q: "Do real visitors get a captcha?", a: "No puzzle. The default layers (honeypot, time token, rules and a learning filter) are invisible. You can also turn on a proof of work check per form; it runs in the browser without a puzzle and is hosted by us." },
-  { q: "What if Postslot goes down?", a: "A submission is saved before the visitor sees success, and delivery is retried until it finishes. If saving fails, the visitor gets a clear error to try again, never a false success. We publish uptime only once we have measured it." },
+  { q: "What if Postslot goes down?", a: "A submission is saved before the visitor sees success, and " + cadence.faqRetry + ". If saving fails, the visitor gets a clear error to try again, never a false success. We publish uptime only once we have measured it." },
   { q: "Do you offer a DPA, SOC 2 or HIPAA?", a: "A DPA is on every plan. We do not offer SOC 2, SSO or HIPAA forms." },
   { q: "How hard is moving from Web3Forms or Formspree?", a: "Change one action URL and the hidden field names if you used custom ones. The compare pages list the differences." },
 ];

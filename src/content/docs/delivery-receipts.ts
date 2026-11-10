@@ -1,4 +1,4 @@
-import { product as p } from "@/config/product";
+import { product as p, cadence } from "@/config/product";
 import type { DocPage } from "./types";
 
 export const deliveryReceipts: DocPage = {
@@ -34,7 +34,7 @@ export const deliveryReceipts: DocPage = {
     {
       heading: "Retries",
       body: [
-        "If handing a message to the mail system fails, we retry after 1 minute, 5 minutes, 30 minutes, 2 hours and 6 hours. After that the receipt records that we gave up and the submission shows Returned. Redeliver starts it again.",
+        cadence.mailRetries,
       ],
     },
     {

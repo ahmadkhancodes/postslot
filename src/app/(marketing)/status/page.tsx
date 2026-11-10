@@ -1,11 +1,11 @@
 import { Container } from "@/components/ui/layout";
-import { product } from "@/config/product";
+import { cadence, product } from "@/config/product";
 import { pageMetadata } from "@/lib/seo";
 import { loadStatus, type StatusSummary } from "@/lib/status";
 
 export const metadata = pageMetadata({
   title: "Status",
-  description: `Uptime of ${product.name}, from a probe that checks the database and the public endpoints every few minutes and a daily end to end check.`,
+  description: cadence.statusMeta,
   path: "/status",
 });
 
@@ -31,7 +31,7 @@ export default async function StatusPage() {
     <Container className="py-12 md:py-20">
       <header className="mb-10 flex max-w-3xl flex-col gap-3">
         <h1 className="heading-4 text-text">Status</h1>
-        <p className="body-3 text-text-subtle">Checked by our own probe: the database and the public endpoints every few minutes, plus a daily end to end check.</p>
+        <p className="body-3 text-text-subtle">{cadence.statusLine}</p>
       </header>
       <section aria-labelledby="now" className="flex max-w-3xl flex-col gap-6">
         <h2 id="now" className="sr-only">Current status</h2>

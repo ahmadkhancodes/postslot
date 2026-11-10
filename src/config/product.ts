@@ -166,6 +166,34 @@ export const product = {
   ],
 } as const;
 
+/**
+ * Scheduler cadence: the ONE constant behind every public claim about retries and checks. Production is Vercel Hobby
+ * (daily cron, 60 s functions, no worker), so it is "daily". Flip to "frequent" once the Cloudflare cron worker runs
+ * every minute. Copy below is what pages show; tests/unit/cadence.test.ts keeps pages and this constant in agreement.
+ */
+export const SCHEDULER_CADENCE: "daily" | "frequent" = "daily";
+export const cadenceCopy = {
+  daily: {
+    mailRetries:
+      "The first attempt happens as soon as your visitor posts. If handing a message to the mail system fails, we retry it in our daily delivery run, for up to 6 attempts in total. After that the receipt records that we gave up and the submission shows Returned. Redeliver starts it again.",
+    webhookRetries:
+      "The first attempt happens as soon as the submission arrives. A failed delivery is retried in our daily run, for up to 8 attempts in total. After the last attempt the delivery is marked failed, and you can replay it from the dashboard.",
+    statusLine: "Checked by our own probe: the database and the public endpoints once a day, with an end to end check of the whole path.",
+    statusMeta: "Uptime of the form endpoint, checked once a day by a probe of the database and the public endpoints.",
+    faqRetry: "delivery is retried in our daily run until it finishes",
+  },
+  frequent: {
+    mailRetries:
+      "If handing a message to the mail system fails, we retry after 1 minute, 5 minutes, 30 minutes, 2 hours and 6 hours. After that the receipt records that we gave up and the submission shows Returned. Redeliver starts it again.",
+    webhookRetries:
+      "Failed deliveries are retried with backoff at 30 seconds, 2 minutes, 10 minutes, 30 minutes, 1 hour, 3 hours, 6 hours and 12 hours. That is up to 8 attempts. After the last attempt the delivery is marked failed, and you can replay it from the dashboard.",
+    statusLine: "Checked by our own probe: the database and the public endpoints every few minutes, plus a daily end to end check.",
+    statusMeta: "Uptime of the form endpoint, checked every few minutes by a probe of the database and the public endpoints.",
+    faqRetry: "delivery is retried within minutes until it finishes",
+  },
+} as const;
+export const cadence = cadenceCopy[SCHEDULER_CADENCE];
+
 export type Product = typeof product;
 export const plans: readonly Plan[] = product.plans;
 /** Outbound webhooks are a Starter-and-above feature (docs/brief.md pricing table): plans with at least one integration slot. */

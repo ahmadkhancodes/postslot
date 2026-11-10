@@ -49,7 +49,7 @@ export function InboxExplainer() {
               <span style={{ width: "3%" }} className="h-full bg-border-strong" />
             </div>
             <p className="body-6 text-text-subtle"><span className="title-4 text-text">214</span> of 250 delivered, 9 spam not counted, 3 held</p>
-            <p className="caption-5 text-text-subtle">Sample data. Over the limit, legitimate submissions are held and shown, then released when you upgrade or the month resets.</p>
+            <p className="caption-5 text-text-subtle">Illustration with fictional data. Over the limit, legitimate submissions are held and shown, then released when you upgrade or the month resets.</p>
           </div>
           <div className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-6">
             <p className="title-3 text-text">Spam never costs you a submission</p>
