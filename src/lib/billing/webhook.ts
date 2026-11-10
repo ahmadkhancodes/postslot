@@ -86,6 +86,7 @@ export async function handleStripeWebhook(rawBody: string, signature: string | n
     await db.setEntitlement(orgId, await computeEntitlement(stripe, app, customerId, prev?.status === "lifetime" ? prev : null, now));
     await deps.onChange?.(orgId, event.type);
   }
+  else log.info("stripe_event_ignored", { type: event.type }); // unknown event: acknowledged with 200 so Stripe stops retrying
   await db.markStripeEvent(event.id, event.type); // only after success
   return json({ received: true });
 }

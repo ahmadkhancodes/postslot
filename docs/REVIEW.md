@@ -30,6 +30,19 @@ Regression tests for every fix are in `tests/unit/review.test.ts`; each failed b
 | P1-10 | Data protection | `src/lib/db/mongo.ts:266` (`deleteOrgData`) | Account deletion leaves the workspace's `audit_log` (with IPs), its suppression list entries and the words it contributed to the global Bayes tokens. The privacy policy promises removal within 30 days. | **Fixed:** `deleteOrgData` also deletes the workspace `audit_log`, its `org:<id>` suppressions and its form-scoped spam words; the `org.deleted` audit record carries no IP and no org link. Global Bayes counts are anonymous word counts and stay. |
 | P1-11 | Ops | `src/app/api/health/route.ts` | `/api/health` always says ok, even with Mongo down, so an uptime monitor never alerts. | **Fixed:** `/api/health` pings the database (1 s timeout) and returns 503 with `ok: false` on failure (`src/lib/health.ts`). |
 
+## Launch hardening (10 Nov 2026)
+
+All P1-1 to P1-11 above are fixed; none is open. Money and mail paths re-checked:
+
+| # | Where | Finding | Status |
+|---|---|---|---|
+| L-1 | `src/lib/forms/recipients.ts` (`sendVerification`), used by add recipient and resend | When Resend rejected the confirmation mail (bad address, rate limit) the route answered 500 after the recipient was already saved. | **Fixed:** error caught and logged (status code only), throttle freed, `sent: false`. Test `tests/unit/launch.test.ts` (failed before). |
+| L-2 | `src/lib/auth/index.ts` magic link and invitation mail | A provider rejection surfaced as a 500 from the auth handler. | **Fixed:** caught and logged; no provider text reaches the client. |
+| L-3 | `src/lib/billing/webhook.ts` | Unknown event types were acknowledged but not logged. | **Fixed:** 200 plus an info log; test added. |
+| L-4 | Stripe webhook idempotency | Entitlement is recomputed from Stripe subscriptions on every relevant event (subscription.*, invoice.*, checkout.session.completed, charge.refunded), the event id is recorded only after success, duplicates answer 200. Out-of-order and duplicate events converge; checkout success does not rely on the redirect (webhook plus `?refresh=1`). | **Checked, fine** (existing tests C-25, C-26). |
+| L-5 | `payment_intent.succeeded` (lifetime) | A `charge.refunded` processed *before* a late `payment_intent.succeeded` of the same lifetime payment would leave the plan granted. Needs the Stripe API to look up the charge; extremely rare. | **Open (P2):** check the PI's charge `refunded` flag before granting. |
+| L-6 | Delivery mail, owner notices | Already catch provider errors (retry with backoff, `owner_mail_failed` warning). | **Checked, fine.** |
+
 ## P2
 
 | # | Where | Finding | Fix |

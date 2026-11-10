@@ -15,3 +15,5 @@
 6. **Before paid launch** (from docs/REVIEW.md): have a person do one keyboard-only and screen reader pass of sign-in, inbox and form setup; fill or remove the `{{verify}}` cells on the compare pages after checking the competitors' own pages.
 
 7. **Uptime probe schedule.** `/status` is fed by the `uptime-probe` job, which needs the Cloudflare cron worker (item 5, `JOBS` already lists it). Until the worker runs, `/status` only gets the daily canary from the `maintenance` cron. After deploying, run `npm run db:indexes`.
+
+8. **Launch hardening: nothing new for the owner.** No P1 is open. Remaining items 3, 5, 6 above stay manual (legal placeholders, cron worker, a11y pass).
