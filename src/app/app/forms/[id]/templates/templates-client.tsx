@@ -58,7 +58,7 @@ export function TemplatesClient({ formId, canWrite, initial }: { formId: string;
           {canWrite ? <div className="flex items-center gap-3"><Button type="submit" loading={busy}>Save template</Button>{msg ? <p role={msg.tone === "err" ? "alert" : "status"} className={`caption-2 ${msg.tone === "err" ? "text-danger" : "text-text-subtle"}`}>{msg.text}</p> : null}</div> : null}
         </form>
       </Panel>
-      <Panel title="Preview" description="Sample data: the same renderer sends the real email.">
+      <Panel title="Preview" description="Shown with an example submission: the same renderer sends the real email.">
         <div className="flex flex-col gap-3" aria-live="polite">
           <p className="body-6 text-text"><span className="text-text-subtle">Subject: </span><span data-testid="preview-subject">{preview?.subject ?? "…"}</span></p>
           {preview ? (

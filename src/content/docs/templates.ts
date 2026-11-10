@@ -23,7 +23,7 @@ export const templates: DocPage = {
     {
       heading: "Preview matches what is sent",
       body: [
-        "The preview runs the same renderer as the real send, on a sample submission, so what you see is what recipients get. Field values are escaped, so markup in a message is shown as text and cannot run.",
+        "The preview runs the same renderer as the real send, on an example submission, so what you see is what recipients get. Field values are escaped, so markup in a message is shown as text and cannot run.",
       ],
     },
     {

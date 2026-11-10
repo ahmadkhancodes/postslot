@@ -11,7 +11,7 @@ const rows: { who: string; ts: string; msg: string; status: SubmissionStatus }[]
   { who: "Tom Whitlock", ts: "11:20:44", msg: "Please call me back about my invoice", status: "Returned" },
 ];
 
-/** The real inbox with one submission's receipt. Sample data, labelled as such. At 375 only the selected row and its receipt show. */
+/** The real inbox with one submission's receipt. Illustration, labelled as such. At 375 only the selected row and its receipt show. */
 export function InboxPreview() {
   return (
     <figure className="m-0 min-w-0">
@@ -63,7 +63,7 @@ export function InboxPreview() {
           </div>
         </div>
       </div>
-      <figcaption className="caption-5 mt-2 text-text-subtle">Sample data. Names and addresses are fictional.</figcaption>
+      <figcaption className="caption-5 mt-2 text-text-subtle">Illustration. Names and addresses are fictional.</figcaption>
     </figure>
   );
 }
