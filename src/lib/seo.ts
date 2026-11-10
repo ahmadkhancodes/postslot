@@ -13,6 +13,9 @@ export function absoluteUrl(path: string): string {
   return new URL(path, product.url).toString();
 }
 
+export const ogImageUrl = () => absoluteUrl("/opengraph-image");
+export const twitterImageUrl = () => absoluteUrl("/opengraph-image");
+
 export function pageMetadata({ title, description, path, noindex }: PageMetaInput): Metadata {
   const url = absoluteUrl(path);
   const full = `${title} · ${product.fullName}`;
@@ -20,8 +23,8 @@ export function pageMetadata({ title, description, path, noindex }: PageMetaInpu
     title,
     description,
     alternates: { canonical: path },
-    openGraph: { type: "website", siteName: product.fullName, title: full, description, url },
-    twitter: { card: "summary_large_image", title: full, description },
+    openGraph: { type: "website", siteName: product.fullName, title: full, description, url, images: [ogImageUrl()] },
+    twitter: { card: "summary_large_image", title: full, description, images: [twitterImageUrl()] },
     ...(noindex ? { robots: { index: false, follow: false } } : {}),
   };
 }

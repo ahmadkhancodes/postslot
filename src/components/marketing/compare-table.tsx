@@ -8,11 +8,23 @@ export interface CompareRow {
   values: CompareValue[];
 }
 
+/** Cell value for a competitor fact we have not confirmed. Rendered as an "Unverified" badge, never as a fact. */
+export const UNVERIFIED = "{{verify}}";
+
 function Cell({ value }: { value: CompareValue }) {
   if (value === true) return <span className="inline-flex items-center gap-2 text-success"><Check size={20} weight="regular" aria-hidden /><span className="sr-only">Yes</span></span>;
   if (value === false) return <span className="inline-flex items-center gap-2 text-text-muted"><X size={20} weight="regular" aria-hidden /><span className="sr-only">No</span></span>;
-  const placeholder = value.includes("{{");
-  return <span className={cn("body-5", placeholder ? "text-text-muted" : "text-text")}>{value}</span>;
+  if (value === UNVERIFIED) {
+    return (
+      <span
+        title="Not confirmed against the competitor's own pages yet"
+        className="caption-2 inline-flex items-center rounded-sm border border-border bg-surface-sunken px-2 py-0.5 text-text-muted"
+      >
+        Unverified
+      </span>
+    );
+  }
+  return <span className="body-5 text-text">{value}</span>;
 }
 
 /** Rows x columns. Scrolls horizontally inside its own container; first column stays pinned. */

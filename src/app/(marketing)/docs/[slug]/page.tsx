@@ -30,8 +30,8 @@ export default async function DocPageRoute({ params }: Props) {
 
   return (
     <Container className="py-12 md:py-20">
-      <div className="grid gap-8 lg:grid-cols-4 lg:gap-12">
-        <aside className="lg:col-span-1">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 lg:gap-12">
+        <aside className="min-w-0 lg:col-span-1">
           <div className="lg:sticky lg:top-24">
             <DocsNav groups={groups} current={doc.slug} />
           </div>
@@ -45,10 +45,10 @@ export default async function DocPageRoute({ params }: Props) {
             <p className="body-3 text-text-subtle">{doc.description}</p>
           </header>
           {doc.sections.map((s) => (
-            <section key={s.heading} id={sectionId(s.heading)} aria-labelledby={`${sectionId(s.heading)}-h`} className="flex scroll-mt-24 flex-col gap-4">
+            <section key={s.heading} id={sectionId(s.heading)} aria-labelledby={`${sectionId(s.heading)}-h`} className="flex min-w-0 scroll-mt-24 flex-col gap-4">
               <h2 id={`${sectionId(s.heading)}-h`} className="heading-6 text-text">{s.heading}</h2>
               {s.body.map((para) => (
-                <p key={para} className="body-3 text-text-subtle">{para}</p>
+                <p key={para} className="body-3 break-words text-text-subtle">{para}</p>
               ))}
               {s.code ? <CodeBlock code={s.code.code} lang={s.code.lang} /> : null}
             </section>

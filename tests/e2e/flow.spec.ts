@@ -72,3 +72,23 @@ test("landing shows the inbox with its delivery receipt, labelled as sample data
   await page.goto("/compare/web3forms");
   await expect(page.getByText("Checked 3 Nov 2026 from public pages")).toBeVisible();
 });
+
+test("home head has og:image and twitter:image, favicon.ico resolves", async ({ request }) => {
+  const html = await (await request.get("/")).text();
+  expect(html).toMatch(/<meta property="og:image" content="https?:\/\/[^"]+\/opengraph-image/);
+  expect(html).toMatch(/<meta name="twitter:image" content="https?:\/\/[^"]+\/opengraph-image/);
+  expect(html).not.toContain("{{verify}}");
+  const fav = await request.get("/favicon.ico");
+  expect(fav.status()).toBe(200);
+});
+
+test("docs pages do not scroll horizontally at 375px", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.goto("/docs");
+  const hrefs = await page.locator('a[href^="/docs/"]').evaluateAll((as) => [...new Set(as.map((a) => a.getAttribute("href")!))]);
+  expect(hrefs.length).toBeGreaterThan(0);
+  for (const h of hrefs) {
+    await page.goto(h);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), h).toBe(true);
+  }
+});

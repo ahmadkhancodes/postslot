@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ogImageUrl, twitterImageUrl } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { ButtonLink } from "@/components/ui/button";
 import { Section } from "@/components/ui/layout";
@@ -22,7 +23,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: entry.title,
     description: entry.description,
     alternates: { canonical: `/compare/${entry.slug}` },
-    openGraph: { title: entry.title, description: entry.description, url: `/compare/${entry.slug}` },
+    openGraph: { title: entry.title, description: entry.description, url: `/compare/${entry.slug}`, images: [ogImageUrl()] },
+    twitter: { card: "summary_large_image", title: entry.title, description: entry.description, images: [twitterImageUrl()] },
   };
 }
 
