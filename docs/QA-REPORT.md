@@ -3,7 +3,7 @@
 Method: the production build (`next start`, memory driver, `E2E_OUTBOX=1`, console mail) driven by real Playwright clicks as the ICP (freelance dev, agency owner, AI-builder user). Specs live in `tests/e2e/qa/`; the whole suite (27 tests, one worker) and the unit tests are green. Not deployed.
 
 ## Journeys covered (one line each)
-- **Visitor, signed out** (`crawl.spec.ts`): every public page at 375 and 1440, light and dark: status 200, one h1, no horizontal scroll, accessible names, pointer cursor, no console errors, every internal link live.
+- **Visitor, signed out** (`crawl.spec.ts`): every public page at 375 and 1440: status 200, one h1, no horizontal scroll, accessible names, pointer cursor, no console errors, every internal link live.
 - **Protected routes** (`crawl.spec.ts`): `/app`, `/app/*`, `/admin` bounce to sign-in and return to the page asked for after the magic link and org creation.
 - **Landing to sign-up** (`journeys.spec.ts`): hero CTA, pricing prices (yearly and monthly) equal `product.ts`, plan CTA goes to sign-in, bad/blank/hostile/throwaway e-mails explained, reused and tampered magic link lands on "That link has expired".
 - **Free user, first form to first lead** (`journeys.spec.ts`): create forms (empty, whitespace, duplicate, HTML, unicode, 80 chars, over 80), double click, recipient limit message, test submission, public posts, inbox, search (hit, miss, HTML shown as text), CSV and JSON export, detail view.
@@ -14,7 +14,7 @@ Method: the production build (`next start`, memory driver, `E2E_OUTBOX=1`, conso
 - **Team and admin** (`team-admin.spec.ts`): non-admin gets 404 on `/admin` and 4xx on admin actions; founder searches, overrides the plan with a reason, the customer sees Pro; suppression list; invite on Free explains the seat limit, on Pro the invitee accepts and as viewer cannot create forms.
 - **Account** (`journeys.spec.ts`): profile save and reload, TOTP setup start, API key create and delete dialog closes on Escape, invitation, delete dialog stays disabled, sign out then protected pages bounce.
 - **Tenant isolation** (`journeys.spec.ts`): another workspace's form pages show the calm 404 and no data, PATCH and DELETE are refused, export has no foreign rows, `/admin` and admin API refused.
-- **Chrome and a11y** (`interactions.spec.ts`, `limits.spec.ts`): theme toggle persists, mobile menu opens, closes on Escape and every link works; copy buttons really copy; all ten install tabs carry the real key; CSV link downloads; back and refresh keep pages usable; checkout return states; skip link first in tab order, focus ring visible, no tap target under 44px at 375px on app and marketing pages.
+- **Chrome and a11y** (`interactions.spec.ts`, `limits.spec.ts`): mobile menu opens, closes on Escape and every link works; copy buttons really copy; all ten install tabs carry the real key; CSV link downloads; back and refresh keep pages usable; checkout return states; skip link first in tab order, focus ring visible, no tap target under 44px at 375px on app and marketing pages.
 - **Numbers vs code** (`tests/unit/docs-match-code.test.ts`): docs and plan highlights quote the limits the code enforces.
 
 ## Defects found and fixed

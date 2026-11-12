@@ -3,17 +3,10 @@ import { fakeIp, magicLink, signInUI, uniq, watch } from "./helpers";
 
 const ipHdr = () => ({ "x-forwarded-for": fakeIp() });
 
-test("marketing chrome: theme toggle persists, mobile menu opens and closes with Escape, nav links go somewhere", async ({ page }) => {
+test("marketing chrome: mobile menu opens and closes with Escape, nav links go somewhere", async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto("/");
-  const toggle = page.getByRole("button", { name: /Switch to (dark|light) theme/ });
-  const before = await page.evaluate(() => document.documentElement.className + document.documentElement.dataset.theme);
-  await toggle.click();
-  const after = await page.evaluate(() => document.documentElement.className + document.documentElement.dataset.theme);
-  expect(after).not.toBe(before);
-  await page.reload();
-  expect(await page.evaluate(() => document.documentElement.className + document.documentElement.dataset.theme)).toBe(after);
 
   await page.getByRole("button", { name: "Open menu" }).click();
   const mobile = page.getByRole("navigation", { name: "Mobile" });

@@ -68,14 +68,13 @@ test("usage, sending domain, admin and inbox polish", async ({ page, request, ba
   await expect(page.getByRole("table", { name: "Suppressed addresses" })).toContainText("blocked@example.com");
   await shots("admin-suppressions-1440-light");
 
-  // Mobile and dark.
+  // Mobile.
   await page.setViewportSize({ width: 375, height: 800 });
-  await page.emulateMedia({ colorScheme: "dark" });
   for (const [path, name] of [["/app/usage", "usage"], ["/app/domains", "domains"], ["/admin", "admin"], [`/admin/org/${org.id}`, "admin-org"]] as const) {
     await page.goto(path);
     await expect(page.locator("main h1")).toBeVisible();
     await noOverflow();
-    await shots(`${name}-375-dark`);
+    await shots(`${name}-375-light`);
   }
   // Non-founders get a 404 on /admin.
   const other = `m4-other+${Date.now()}@studio.test`;

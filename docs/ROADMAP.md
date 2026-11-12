@@ -37,7 +37,7 @@ Gate before M1 UI: the orchestrator approves `docs/DESIGN.md` and `docs/design/m
 - [ ] Founder admin: workspace search, abuse flags, suspend form, plan override, suppression list, audit; canary cron, `/status`.
 
 ## M5: QA, hardening, launch readiness (P12 and all)
-- [ ] Playwright screenshots for every route at 375 and 1440, light and dark; axe pass; Lighthouse 90+.
+- [ ] Playwright screenshots for every route at 375 and 1440; axe pass; Lighthouse 90+.
 - [ ] Design scorecard, palette distinctness re-check against sibling products.
 - [ ] k6 ingest load test at 200 rps on a preview deploy; p95 under 150 ms for the edge path.
 - [ ] Security pass: CSP, open redirect checks, SSRF review for redirect/webhooks, escape review for email templates, IP hash pepper rotation.

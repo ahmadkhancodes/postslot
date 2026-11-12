@@ -1,6 +1,6 @@
 # DESIGN: Postslot by BufferSol
 
-Phase 0, final 5 Nov 2026. Binding for all UI. Follows `docs/factory/DESIGN_PLAYBOOK.md` and `.claude/skills/landing-page-design/SKILL.md`. Reference mock: `docs/design/mock.html` (+ `mock-1440.png`, `mock-375.png`, `mock-1440-dark.png`).
+Phase 0, final 5 Nov 2026. Binding for all UI. Follows `docs/factory/DESIGN_PLAYBOOK.md` and `.claude/skills/landing-page-design/SKILL.md`. Reference mock: `docs/design/mock.html` (+ `mock-1440.png`, `mock-375.png`).
 
 Deliberate divergence from `docs/brief.md` "Design direction": the brief's Ledger Green / Archivo / Public Sans / IBM Plex Mono palette is **rejected** (orchestrator palette registry bans green/teal families and the "warm paper + dark green + condensed display + mono" batch default). The brief's concept (the Mail Room, postal verbs, delivery stamp) is kept and sharpened. Logged in `docs/DECISIONS.md` by the build session.
 
@@ -40,9 +40,9 @@ For freelance developers and small agencies who ship contact forms on static and
 | Axis | Decision | Why |
 |---|---|---|
 | Concept | "The postmark": every submission is a letter; the receipt is the product | Brief concept, sharpened to one ownable object |
-| Palette | Cool neutral ramp, ink text, ONE accent **Postmark violet** (action #6B3FC4 light, #B49AF0 dark; the colour of a stamp pad), danger stays a true red (#B3261E) | Not green, teal, navy, amber, near black or tomato (see section 10); violet is classic stamp ink and is not the default blue/indigo of the category |
+| Palette | Cool neutral ramp, ink text, ONE accent **Postmark violet** (action #6B3FC4; the colour of a stamp pad), danger stays a true red (#B3261E) | Not green, teal, navy, amber, near black or tomato (see section 10); violet is classic stamp ink and is not the default blue/indigo of the category |
 | Surfaces | Flat. Hairline 1px borders, zero decorative shadow (one `shadow-raised` for popovers) | Dev tool trust, playbook flat rule |
-| Dark mode | Playbook backgrounds only: #000000, #181818, #1F1F1F, #272727, #313131 | Hard rule B4 |
+| Dark mode | None. The product is light only (founder decision, D-L1) | Owner rule |
 | Type | **Geist** (one family) 400/500/600, **Geist Mono** only for form keys, IDs, timestamps, code, the postmark | Whitelist; dev ICP; mono is functional |
 | Radius | Sharp: controls 4px (`rounded`), panels 8px (`rounded-lg`), postmark and avatars circular. Nested: inner = outer minus gap, only if greater than 2, else square | Dev/enterprise personality |
 | Density | High in product UI (40px ledger rows, tabular numerals), spacious marketing sections | Linear/Resend pattern |
@@ -67,46 +67,46 @@ Replace only the values in the two `:root` blocks. Names unchanged. Additive tok
 | `--n-500` | #6B6E76 | | `--accent-600` | #5E34B1 |
 
 ### Role tokens
-| Token | Light | Dark |
-|---|---|---|
-| `--surface` | #FFFFFF (n-0) | #181818 |
-| `--surface-raised` | #F6F6F8 (n-50) | #1F1F1F |
-| `--surface-sunken` | #EEEEF1 (n-100) | #000000 |
-| `--surface-inverse` | #17181C (n-900) | #F6F6F8 |
-| `--text` | #17181C | #F2F2F2 |
-| `--text-subtle` | #55585F | #B4B4B4 |
-| `--text-muted` | #6B6E76 | #949494 |
-| `--text-inverse` | #FFFFFF | #181818 |
-| `--border` | #E1E2E6 | #313131 |
-| `--border-strong` (inputs, UI parts, 3:1) | #8A8D96 | #707070 |
-| `--action` | #6B3FC4 | #B49AF0 |
-| `--action-hover` | #5E34B1 | #C6B2F5 |
-| `--action-text` | #FFFFFF | #1A1030 |
-| `--focus` (ink ring, never the accent) | #17181C | #F2F2F2 |
-| `--success` / `--success-surface` | #1F7A3A / #E8F5EC | #6FCF8F / #13261A |
-| `--warning` / `--warning-surface` | #8A5A00 / #FDF3DC | #E7B85A / #2A210E |
-| `--danger` / `--danger-surface` | #B3261E / #FCEBEA | #F2766E / #331513 |
-| `--hero-from` / `--hero-to` | #000000 / #666666 | #FFFFFF / #9B9B9B |
-| `--action-surface` + (tint behind postmark, selected row) | #F1ECFB | #241C38 |
-| `--code-bg` + | #17181C | #000000 |
-| `--code-text` + | #E9EAEE | #E6E6E6 |
-| `--code-accent` + (keys, strings in code) | #B49AF0 | #B49AF0 |
-| `--code-muted` + | #9A9DA6 | #949494 |
-| `--shadow-color` | 0 0% 0% | 0 0% 0% |
+| Token | Light |
+|---|---|
+| `--surface` | #FFFFFF (n-0) |
+| `--surface-raised` | #F6F6F8 (n-50) |
+| `--surface-sunken` | #EEEEF1 (n-100) |
+| `--surface-inverse` | #17181C (n-900) |
+| `--text` | #17181C |
+| `--text-subtle` | #55585F |
+| `--text-muted` | #6B6E76 |
+| `--text-inverse` | #FFFFFF |
+| `--border` | #E1E2E6 |
+| `--border-strong` (inputs, UI parts, 3:1) | #8A8D96 |
+| `--action` | #6B3FC4 |
+| `--action-hover` | #5E34B1 |
+| `--action-text` | #FFFFFF |
+| `--focus` (ink ring, never the accent) | #17181C |
+| `--success` / `--success-surface` | #1F7A3A / #E8F5EC |
+| `--warning` / `--warning-surface` | #8A5A00 / #FDF3DC |
+| `--danger` / `--danger-surface` | #B3261E / #FCEBEA |
+| `--hero-from` / `--hero-to` | #000000 / #666666 |
+| `--action-surface` + (tint behind postmark, selected row) | #F1ECFB |
+| `--code-bg` + | #17181C |
+| `--code-text` + | #E9EAEE |
+| `--code-accent` + (keys, strings in code) | #B49AF0 |
+| `--code-muted` + | #9A9DA6 |
+| `--shadow-color` | 0 0% 0% |
 
-Accent saturation (HSL): light 53%, light hover 55%, dark 74%, dark hover 77% (all below 80). Danger hue 3 vs accent hue 258 to 260: far apart, and danger always appears with the octagon icon and the words "Bounced", "Failed" or "Returned"; the accent is never used to color a status chip, an error message, or a destructive button (destructive = danger red).
+Accent saturation (HSL): 53%, hover 55% (all below 80). Danger hue 3 vs accent hue 258 to 260: far apart, and danger always appears with the octagon icon and the words "Bounced", "Failed" or "Returned"; the accent is never used to color a status chip, an error message, or a destructive button (destructive = danger red).
 
 ### Contrast (WCAG 2.x, computed with the relative luminance formula)
-| Pair | Light | Dark | Need |
-|---|---|---|---|
-| `action-text` on `action` (button) | 6.70 (#FFF on #6B3FC4) | 7.60 (#1A1030 on #B49AF0) | 4.5 |
-| `action-text` on `action-hover` | 8.07 | 9.55 | 4.5 |
-| `action` on `surface` (links, outlines) | 6.70 | 7.46 | 4.5 |
-| `action` on `surface-raised` | 6.21 | 6.92 | 4.5 |
-| `action` on `action-surface` | 5.79 | 6.79 | 4.5 |
-| `danger` on `surface` | 6.54 | 6.42 | 4.5 |
-| `danger` on `danger-surface` | 5.67 | 6.04 | 4.5 |
-| `text`, `text-subtle`, `text-muted`, `border-strong`, `focus`, `success`, `warning` pairs | unchanged from the neutral ramp, verified in the Phase 0 draft (text 17.74, subtle 7.12, muted 5.10 on surface; border-strong 3.32) | see draft values | 4.5 / 3 |
+| Pair | Light | Need |
+|---|---|---|
+| `action-text` on `action` (button) | 6.70 (#FFF on #6B3FC4) | 4.5 |
+| `action-text` on `action-hover` | 8.07 | 4.5 |
+| `action` on `surface` (links, outlines) | 6.70 | 4.5 |
+| `action` on `surface-raised` | 6.21 | 4.5 |
+| `action` on `action-surface` | 5.79 | 4.5 |
+| `danger` on `surface` | 6.54 | 4.5 |
+| `danger` on `danger-surface` | 5.67 | 4.5 |
+| `text`, `text-subtle`, `text-muted`, `border-strong`, `focus`, `success`, `warning` pairs | unchanged from the neutral ramp, verified in the Phase 0 draft (text 17.74, subtle 7.12, muted 5.10 on surface; border-strong 3.32) | 4.5 / 3 |
 
 ## 7. Type: named styles
 
