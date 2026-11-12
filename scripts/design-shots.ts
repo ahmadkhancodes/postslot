@@ -23,7 +23,7 @@ const nameOf = (r: string) => (r === "/" ? "home" : r.slice(1).replace(/[/?=&]/g
 
 async function main() {
   mkdirSync(OUT, { recursive: true });
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM, args: ["--no-sandbox"] } : {});
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: "light", extraHTTPHeaders: { "x-forwarded-for": `10.9.${Date.now() % 250}.7` } });
   const page = await ctx.newPage();
   const origin = { origin: BASE };

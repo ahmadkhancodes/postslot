@@ -35,3 +35,10 @@ describe("light only", () => {
     expect(read("src/app/globals.css")).toMatch(/color-scheme:\s*light/);
   });
 });
+
+describe("light sidebar", () => {
+  it("old dark sidebar tokens are gone", () => {
+    const bad = /surface-inverse|border-inverse|text-inverse-subtle/;
+    expect(files.filter((f) => bad.test(read(f)))).toEqual([]);
+  });
+});

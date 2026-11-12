@@ -72,7 +72,7 @@ Replace only the values in the two `:root` blocks. Names unchanged. Additive tok
 | `--surface` | #FFFFFF (n-0) |
 | `--surface-raised` | #F6F6F8 (n-50) |
 | `--surface-sunken` | #EEEEF1 (n-100) |
-| `--surface-inverse` | #17181C (n-900) |
+| (removed) dark sidebar tokens | the app sidebar is white with hairline borders |
 | `--text` | #17181C |
 | `--text-subtle` | #55585F |
 | `--text-muted` | #6B6E76 |
