@@ -78,3 +78,9 @@ Standing decisions are in docs/factory/BATCH1_PLAN.md (Mongo instead of Postgres
 - **D-SEC-3 Webhook address pinning (supersedes the "waits for the VPS" part of D-M5-8).** Production webhook POSTs go through `node:https` with a lookup that refuses private addresses, so the checked address is the connected one.
 - **D-SEC-4 API key actions.** Roles carry the plugin's `create/update/delete` next to our `manage`, so admins can manage keys as the UI says; members read only.
 - **D-SEC-5 Client IP trust.** `x-forwarded-for` (first entry) is trusted because Vercel overwrites it. Before moving any route behind another proxy (VPS), trust only the proxy-set header there; see SECURITY-REVIEW.md S-9.
+
+## Usefulness pass (12 Nov 2026)
+- **D-U1 Other services' field names are understood.** `_next` (Formspree, FormSubmit) redirects like `_redirect`, `_honey` (FormSubmit) is a honeypot, and `access_key` (Web3Forms), `_captcha` and `_template` (FormSubmit) are dropped instead of shown as fields. A moved form works after changing only its action. Redirect safety rules are unchanged.
+- **D-U2 First form from the empty inbox.** The empty inbox holds the create form pre-filled with "Contact form", and a form's install page shows "Send test submission" until its first submission. Budget: at most 2 clicks from a new workspace to the first receipt (`tests/e2e/usefulness/personas.spec.ts`).
+- **D-U3 Stripe stand-in for e2e.** `STRIPE_API_BASE` points the Stripe SDK at `tests/e2e/billing/fake-stripe.mjs`; it is honoured only for `sk_test_` keys. A second app instance (:3101) uses it so the other specs still test "billing not connected".
+- **D-U4 Plan hint on billing.** Billing shows how many legitimate submissions are held and marks the smallest plan above the current one that covers this month's counted plus held submissions ("Fits your usage"). Pure helper `src/lib/billing/recommend.ts`.

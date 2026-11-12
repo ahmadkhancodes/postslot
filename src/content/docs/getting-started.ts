@@ -1,4 +1,5 @@
 import { product as p } from "@/config/product";
+import { apiKeyCurl } from "@/lib/onboarding/snippets";
 import type { DocPage } from "./types";
 
 export const gettingStarted: DocPage = {
@@ -34,7 +35,7 @@ export const gettingStarted: DocPage = {
       body: ["Create an API key under Settings, then send it in the x-api-key header. This call returns the organization the key belongs to."],
       code: {
         lang: "bash",
-        code: `curl ${p.url}/api/v1/me \\\n  -H "x-api-key: YOUR_API_KEY"`,
+        code: apiKeyCurl(p.url, "YOUR_API_KEY"),
       },
     },
     {

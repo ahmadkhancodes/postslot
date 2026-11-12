@@ -4,8 +4,9 @@ import { api, hardNavigate } from "@/components/app/api";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 
-export function CreateForm() {
-  const [name, setName] = useState("");
+/** `defaultName` pre-fills the name so a first form is one click (the inbox empty state). */
+export function CreateForm({ defaultName = "", label = "New form" }: { defaultName?: string; label?: string } = {}) {
+  const [name, setName] = useState(defaultName);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   return (
@@ -24,7 +25,7 @@ export function CreateForm() {
       }}
     >
       <div className="flex-1">
-        <Field label="New form" htmlFor="form-name" error={error} hint="For example Contact page or Studio waitlist.">
+        <Field label={label} htmlFor="form-name" error={error} hint="For example Contact page or Studio waitlist. You can rename it later.">
           <Input id="form-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} required aria-invalid={!!error} />
         </Field>
       </div>

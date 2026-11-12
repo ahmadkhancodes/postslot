@@ -9,7 +9,7 @@ export type LintRule =
 
 const MAX_FIELDS = 25; // ingest limit (src/lib/forms/ingest.ts)
 const SKIP_TYPES = new Set(["submit", "button", "reset", "image"]);
-const HONEYPOT = /^(_gotcha|botcheck)$/i;
+const HONEYPOT = /^(_gotcha|botcheck|_honey)$/i;
 
 function attrs(tag: string): Record<string, string> {
   const out: Record<string, string> = {};
@@ -74,3 +74,30 @@ export function lintSnippet(html: string, opts: { endpoint?: string } = {}): Lin
 }
 
 export const lintHasErrors = (issues: LintIssue[]) => issues.some((i) => i.severity === "error");
+
+/** Inputs other form services need that Postslot does not (Web3Forms access_key, FormSubmit _captcha/_template). */
+const FOREIGN_INPUT = /<input\b[^>]*\bname\s*=\s*["']?(access_key|_captcha|_template)["']?[^>]*>[ \t]*\r?\n?/gi;
+
+/**
+ * Rewrites a pasted form so it posts to this endpoint: action and method set, other services' key inputs removed and a
+ * hidden honeypot added when missing. Everything else (field names, labels, markup) is kept as pasted. Returns null when
+ * there is no <form> tag or nothing needs to change.
+ */
+export function fixForm(html: string, endpoint: string): string | null {
+  const m = /<form\b[^>]*>/i.exec(html);
+  if (!m) return null;
+  let tag = m[0];
+  const setAttr = (name: string, value: string) => {
+    const re = new RegExp(`(\\s)${name}\\s*=\\s*(?:"[^"]*"|'[^']*'|\\{[^}]*\\}|[^\\s>]+)`, "i");
+    tag = re.test(tag) ? tag.replace(re, `$1${name}="${value}"`) : tag.replace(/\s*>$/, ` ${name}="${value}">`);
+  };
+  setAttr("action", endpoint);
+  setAttr("method", "POST");
+  let out = html.slice(0, m.index) + tag + html.slice(m.index + m[0].length);
+  out = out.replace(FOREIGN_INPUT, "");
+  if (!/\bname\s*=\s*["']?(_gotcha|botcheck|_honey)\b/i.test(out)) {
+    out = out.replace(/(\n?)([ \t]*)<\/form>/i, (_all, nl: string, indent: string) =>
+      `${nl}${indent}  <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="display:none">\n${indent}</form>`);
+  }
+  return out === html ? null : out;
+}

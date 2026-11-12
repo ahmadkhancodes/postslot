@@ -8,11 +8,13 @@ export const uniq = () => `${Date.now()}${Math.floor(Math.random() * 1000)}`;
 export async function signInUI(page: Page, request: APIRequestContext, email: string, orgName = "Harbor Studio") {
   // Better Auth rate limits sign-in per IP (3 per 10 s); every test gets its own pretend client IP.
   await page.context().setExtraHTTPHeaders({ "x-forwarded-for": fakeIp() });
+  // An address reused across specs (the founder) already has links in the outbox: wait for a new one, not the last used one.
+  const stale = await lastLink(request, email);
   await page.goto("/sign-in");
   await page.getByLabel("Email").fill(email);
   await page.getByRole("button", { name: "Email me a sign-in link" }).click();
   await expect(page.getByText(`Check your inbox at ${email}`)).toBeVisible();
-  const link = await magicLink(request, email);
+  const link = await magicLink(request, email, stale);
   await page.goto(link);
   if (orgName) {
     await expect(page).toHaveURL(/\/onboarding|\/app/);
@@ -24,12 +26,16 @@ export async function signInUI(page: Page, request: APIRequestContext, email: st
   }
 }
 
-export async function magicLink(request: APIRequestContext, email: string) {
+async function lastLink(request: APIRequestContext, email: string): Promise<string | undefined> {
+  const box = await (await request.get(`/api/dev/outbox?to=${encodeURIComponent(email)}`)).json();
+  return /https?:\/\/\S+magic-link\/verify\S+/.exec(box.messages.at(-1)?.text ?? "")?.[0];
+}
+
+export async function magicLink(request: APIRequestContext, email: string, notThis?: string) {
   let link: string | undefined;
   await expect.poll(async () => {
-    const box = await (await request.get(`/api/dev/outbox?to=${encodeURIComponent(email)}`)).json();
-    link = /https?:\/\/\S+magic-link\/verify\S+/.exec(box.messages.at(-1)?.text ?? "")?.[0];
-    return link;
+    link = await lastLink(request, email);
+    return link && link !== notThis ? link : undefined;
   }, { message: "magic link in outbox" }).toBeTruthy();
   return link!;
 }

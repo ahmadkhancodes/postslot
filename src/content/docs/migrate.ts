@@ -9,8 +9,8 @@ export const migrate: DocPage = {
     {
       heading: "Change one attribute",
       body: [
-        `Create a form in ${p.name}, copy its endpoint and replace the action of your existing HTML form. Field names stay as they are: email and _replyto set the Reply-To, subject or _subject sets the subject, from_name the sender name, _gotcha and botcheck are the honeypot, and every other field is stored and shown as sent.`,
-        "A Formspree form posts to https://formspree.io/f/<id>; a Web3Forms form posts to https://api.web3forms.com/submit with a hidden access_key field. Replace the action, delete the access_key input (it would be shown as an ordinary field) and keep the rest.",
+        `Create a form in ${p.name}, copy its endpoint and replace the action of your existing HTML form. Field names stay as they are: email and _replyto set the Reply-To, subject or _subject sets the subject, from_name the sender name, _gotcha, botcheck and _honey are the honeypot, redirect, _redirect and _next set the page visitors land on, and every other field is stored and shown as sent.`,
+        "A Formspree form posts to https://formspree.io/f/<id>, a Web3Forms form to https://api.web3forms.com/submit with a hidden access_key field, a FormSubmit form to https://formsubmit.co/<address>. Replace the action and keep the rest: access_key, _captcha and _template are ignored, so you can leave them in place and remove them later.",
       ],
       code: {
         lang: "html",
@@ -20,8 +20,8 @@ export const migrate: DocPage = {
     {
       heading: "Check before you cut over",
       body: [
-        "Open the form's Check and test tab, paste your form HTML to lint it, press Send test submission and watch the receipt. Then post once from your live site. Lock the form to your domain only after that works.",
-        "Redirect and success pages: a redirect field (Web3Forms) works like _redirect, under the same allowed-origin rule. Formspree's _next is not read: set the success URL on the form, or post _redirect.",
+        "Open the form's Check and test tab and paste your existing form HTML. The check lists what to change and gives you the corrected form to copy, with your endpoint, method POST and a honeypot already in it. Press Send test submission and watch the receipt. Then post once from your live site. Lock the form to your domain only after that works.",
+        "Redirect and success pages: a redirect field (Web3Forms) and _next (Formspree, FormSubmit) work like _redirect, under the same allowed-origin rule: the page must be on the site that posted the form or on one of the form's allowed sites; otherwise visitors land on the form's success URL.",
       ],
     },
     {

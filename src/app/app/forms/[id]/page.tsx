@@ -7,7 +7,7 @@ import { can } from "@/lib/auth/roles";
 import { requireOrg } from "@/lib/auth/session";
 import { getDb } from "@/lib/db";
 import { appUrl } from "@/lib/env";
-import type { Form, Recipient } from "@/lib/forms/types";
+import type { Form, Recipient, Submission } from "@/lib/forms/types";
 import { snippetsFor } from "@/lib/onboarding/snippets";
 
 export const metadata = { title: "Form" };
@@ -23,6 +23,8 @@ export default async function FormPage({ params }: { params: Promise<{ id: strin
     id: r._id, email: r.email, verified: !!r.verifiedAt, bounced: r.bouncedAt ? (r.bounceDetail ?? "rejected") : null,
   }));
   const endpoint = `${appUrl()}/f/${form.key}`;
+  // Until the form has seen its first submission, the test button sits on this page too: create, then one click to a receipt.
+  const firstRun = (await db.docs<Submission>("submissions").count({ formId: form._id })) === 0;
   return (
     <>
       <PageHeader
@@ -36,6 +38,7 @@ export default async function FormPage({ params }: { params: Promise<{ id: strin
         endpoint={endpoint}
         recipients={recipients}
         snippets={snippetsFor(endpoint, appUrl())}
+        firstRun={firstRun}
       />
     </>
   );

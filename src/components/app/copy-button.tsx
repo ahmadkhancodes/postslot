@@ -33,7 +33,7 @@ export function CopyButton({ value, label = "Copy", size = "sm" }: { value: stri
 }
 
 /** A value shown once (API key, webhook secret) with a copy button and a plain warning. */
-export function SecretReveal({ title, value, onDismiss }: { title: string; value: string; onDismiss: () => void }) {
+export function SecretReveal({ title, value, onDismiss, children }: { title: string; value: string; onDismiss: () => void; children?: React.ReactNode }) {
   return (
     <div role="status" className="flex flex-col gap-3 rounded-lg border border-success bg-success-surface p-4">
       <p className="title-4 text-text">{title}</p>
@@ -42,6 +42,7 @@ export function SecretReveal({ title, value, onDismiss }: { title: string; value
         <code className="min-w-0 flex-1 break-all rounded-md border border-border bg-surface px-3 py-2 caption-2 text-text">{value}</code>
         <CopyButton value={value} />
       </div>
+      {children}
       <div>
         <Button type="button" variant="tertiary" size="sm" onClick={onDismiss}>I have saved it</Button>
       </div>

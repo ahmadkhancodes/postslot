@@ -3,7 +3,8 @@ import { useState } from "react";
 import { authError, useAsync } from "@/components/app/api";
 import { formatDate } from "@/lib/format";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
-import { SecretReveal } from "@/components/app/copy-button";
+import { CopyButton, SecretReveal } from "@/components/app/copy-button";
+import { apiKeyCurl } from "@/lib/onboarding/snippets";
 import { DataTable, Td } from "@/components/app/data-table";
 import { Panel } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import { authClient } from "@/lib/auth/client";
 
 interface KeyRow { id: string; name: string | null; start: string | null; prefix: string | null; createdAt: string | Date; lastRequest: string | Date | null }
 
-export function ApiKeysClient({ orgId, canManage }: { orgId: string; canManage: boolean }) {
+export function ApiKeysClient({ orgId, canManage, apiBase }: { orgId: string; canManage: boolean; apiBase: string }) {
   const keys = useAsync<KeyRow[]>(async () => {
     const { data, error } = await authClient.apiKey.list({ query: { organizationId: orgId } });
     if (error || !data) throw new Error("Could not load API keys.");
@@ -56,7 +57,15 @@ export function ApiKeysClient({ orgId, canManage }: { orgId: string; canManage: 
   return (
     <div className="flex flex-col gap-6">
       {!canManage ? <Notice title="Read only">Only owners and admins can create or delete API keys.</Notice> : null}
-      {created ? <SecretReveal title={`Key created: ${created.name}`} value={created.key} onDismiss={() => setCreated(null)} /> : null}
+      {created ? (
+        <SecretReveal title={`Key created: ${created.name}`} value={created.key} onDismiss={() => setCreated(null)}>
+          <div className="flex flex-col gap-2">
+            <p className="body-6 text-text-subtle">Try it from a terminal. This request returns your organization id.</p>
+            <pre aria-label="First request" className="overflow-auto rounded-md bg-code-bg p-3 font-mono text-xs leading-relaxed text-code-text"><code>{apiKeyCurl(apiBase, created.key)}</code></pre>
+            <div><CopyButton value={apiKeyCurl(apiBase, created.key)} label="Copy command" /></div>
+          </div>
+        </SecretReveal>
+      ) : null}
 
       {canManage ? (
         <Panel title="Create a key">
