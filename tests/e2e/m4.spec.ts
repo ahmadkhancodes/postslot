@@ -79,9 +79,9 @@ test("usage, sending domain, admin and inbox polish", async ({ page, request, ba
   }
   // Non-founders get a 404 on /admin.
   const other = `m4-other+${Date.now()}@studio.test`;
-  const ctx = await page.context().browser()!.newContext({ baseURL });
+  const ctx = await page.context().browser()!.newContext({ baseURL, extraHTTPHeaders: { "x-forwarded-for": "198.51.100.44" } });
   const p2 = await ctx.newPage();
-  await p2.request.post("/api/auth/sign-in/magic-link", { data: { email: other, callbackURL: "/app" }, headers: origin });
+  await p2.request.post("/api/auth/sign-in/magic-link", { data: { email: other, callbackURL: "/app" }, headers: { ...origin, "x-forwarded-for": "198.51.100.44" } });
   const box2 = await (await request.get(`/api/dev/outbox?to=${encodeURIComponent(other)}`)).json();
   await p2.goto(/https?:\/\/\S+magic-link\/verify\S+/.exec(box2.messages.at(-1).text)![0]);
   expect((await p2.goto("/admin"))!.status()).toBe(404);

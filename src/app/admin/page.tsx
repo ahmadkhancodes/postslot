@@ -66,7 +66,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 {found.workspaces.length ? (
                   <DataTable caption="Workspaces" columns={[{ key: "n", label: "Workspace" }, { key: "id", label: "Id" }, { key: "a", label: "" }]}>
                     {found.workspaces.map((w) => (
-                      <tr key={w.id}><Td>{w.name}</Td><Td><code>{w.id}</code></Td><Td><Link className="underline underline-offset-4" href={`/admin/org/${encodeURIComponent(w.id)}`}>Open</Link></Td></tr>
+                      <tr key={w.id}><Td>{w.name}</Td><Td><code>{w.id}</code></Td><Td><Link className="underline underline-offset-4" href={`/admin/org/${encodeURIComponent(w.id)}`} aria-label={`Open workspace ${w.name}`}>Open</Link></Td></tr>
                     ))}
                   </DataTable>
                 ) : null}
