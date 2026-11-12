@@ -7,6 +7,7 @@ import { forms } from "./forms";
 import { gettingStarted } from "./getting-started";
 import { install } from "./install";
 import { limits } from "./limits";
+import { migrate } from "./migrate";
 import { sendingDomain } from "./sending-domain";
 import { spam } from "./spam";
 import { templates } from "./templates";
@@ -20,10 +21,10 @@ export interface DocGroup {
   docs: DocPage[];
 }
 
-export const docs: DocPage[] = [gettingStarted, install, forms, spam, deliveryReceipts, templates, sendingDomain, webhooks, api, errors, limits, authentication, billing];
+export const docs: DocPage[] = [gettingStarted, install, forms, migrate, spam, deliveryReceipts, templates, sendingDomain, webhooks, api, errors, limits, authentication, billing];
 
 export const docGroups: DocGroup[] = [
-  { title: "Start here", docs: [gettingStarted, install, forms] },
+  { title: "Start here", docs: [gettingStarted, install, forms, migrate] },
   { title: "How it works", docs: [spam, deliveryReceipts, templates, sendingDomain] },
   { title: "Build", docs: [webhooks, api, errors] },
   { title: "Account", docs: [limits, authentication, billing] },

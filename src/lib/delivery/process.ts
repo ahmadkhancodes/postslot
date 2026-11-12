@@ -34,7 +34,7 @@ async function meterAndRoute(db: Db, form: Form, sub: Submission, deps: Deps): P
     // so a submission is never counted or dispatched twice.
     if (!(await subs(db).update({ _id: sub._id, metered: { $ne: true }, status: { $ne: "quarantined" } }, { metered: true }))) return (await subs(db).get(sub._id))!;
     if (!(await admit(db, sub.orgId, now))) {
-      await subs(db).update({ _id: sub._id }, { metered: undefined });
+      await subs(db).update({ _id: sub._id }, { metered: undefined, meteredPeriod: undefined });
       // The cron retries held rows every minute: count the hold on the `held` meter only when it first becomes held.
       if (sub.status !== "held") await countHeld(db, sub.orgId, now);
       await subs(db).update({ _id: sub._id }, { status: "held", holdReason: "over_limit" });
@@ -43,7 +43,8 @@ async function meterAndRoute(db: Db, form: Form, sub: Submission, deps: Deps): P
       if (sub.status !== "held") await emitSubmissionEvent(db, form, { ...sub, status: "held", holdReason: "over_limit" }, "submission.held", deps);
       return (await subs(db).get(sub._id))!;
     }
-    sub = { ...sub, metered: true };
+    await subs(db).update({ _id: sub._id }, { meteredPeriod: periodOf(now) });
+    sub = { ...sub, metered: true, meteredPeriod: periodOf(now) };
     await soft(checkUsageNotices(db, sub.orgId, deps), "usage_notice");
   }
   return dispatchOrHold(db, form, { ...sub, holdReason: undefined }, deps);
@@ -92,9 +93,9 @@ export async function markSpam(db: Db, id: string, orgId: string, now = new Date
   const sub = await subs(db).get(id);
   if (!sub || sub.orgId !== orgId || sub.status === "quarantined") return null;
   await train(db, orgId, sub.formId, sub.searchText, "spam");
-  if (sub.metered) await db.incUsage(orgId, "submissions", periodOf(sub.receivedAt), -1);
+  if (sub.metered) await db.incUsage(orgId, "submissions", sub.meteredPeriod ?? periodOf(sub.receivedAt), -1);
   await countSpam(db, orgId, now);
-  await subs(db).update({ _id: id }, { status: "quarantined", markedSpam: true, metered: false, holdReason: undefined });
+  await subs(db).update({ _id: id }, { status: "quarantined", markedSpam: true, metered: false, meteredPeriod: undefined, holdReason: undefined });
   await recordEvent(db, { orgId, submissionId: id, type: "sorted", at: now, detail: "marked spam by the owner" });
   return subs(db).get(id);
 }
@@ -137,6 +138,7 @@ export async function unsuppressRecipient(db: Db, orgId: string, recipientId: st
   return "ok";
 }
 
+const MAX_REDRIVES = 20;
 const STUCK_MS = 2 * 60_000;
 const EXPIRE_DEFERRED_MS = 3 * 864e5;
 
@@ -144,7 +146,19 @@ const EXPIRE_DEFERRED_MS = 3 * 864e5;
 export async function deliverPending(db: Db, deps: Deps = {}) {
   const now = deps.now?.() ?? new Date();
   const stuck = await subs(db).find({ status: "received", receivedAt: { $lt: new Date(now.getTime() - STUCK_MS) } }, { limit: 100, sort: { receivedAt: 1 } });
-  for (const s of stuck) await processSubmission(db, s._id, deps);
+  let abandoned = 0;
+  for (const s of stuck) {
+    // A row whose form is gone, or that keeps failing, must not starve the re-drive of everyone else's rows.
+    const form = await db.docs<Form>("forms").get(s.formId);
+    if (!form || (s.redrives ?? 0) >= MAX_REDRIVES) {
+      await subs(db).update({ _id: s._id }, { status: "failed" });
+      await recordEvent(db, { orgId: s.orgId, submissionId: s._id, type: "expired", at: now, detail: form ? "processing kept failing, given up" : "the form was deleted before delivery" });
+      abandoned++;
+      continue;
+    }
+    await subs(db).update({ _id: s._id }, { redrives: (s.redrives ?? 0) + 1 });
+    try { await processSubmission(db, s._id, deps); } catch (e) { log.warn("redrive_failed", { message: (e as Error).message.slice(0, 120) }); }
+  }
   const retried = await retryQueued(db, deps);
   const old = await db.docs<Delivery>("deliveries").find({ status: "deferred", lastEventAt: { $lt: new Date(now.getTime() - EXPIRE_DEFERRED_MS) } }, { limit: 100 });
   for (const d of old) {
@@ -168,5 +182,5 @@ export async function deliverPending(db: Db, deps: Deps = {}) {
   const heldOrgs = [...new Set((await subs(db).find({ status: "held", holdReason: "over_limit" }, { limit: 500, sort: { receivedAt: 1 } })).map((s) => s.orgId))];
   let released = 0;
   for (const o of heldOrgs) released += await releaseHeld(db, o, deps);
-  return { reprocessed: stuck.length, retried, expired: old.length, released, unblocked };
+  return { reprocessed: stuck.length, abandoned, retried, expired: old.length, released, unblocked };
 }

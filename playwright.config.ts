@@ -6,7 +6,11 @@ export default defineConfig({
   timeout: 60_000,
   // One worker: every spec signs in from the same address and Better Auth rate limits sign-in per IP.
   workers: 1,
-  use: { baseURL: process.env.BASE_URL ?? `http://localhost:${PORT}` },
+  use: {
+    baseURL: process.env.BASE_URL ?? `http://localhost:${PORT}`,
+    // Runners without Playwright's browser download can point at a system Chromium: PW_CHROMIUM=/usr/bin/chromium
+    ...(process.env.PW_CHROMIUM ? { launchOptions: { executablePath: process.env.PW_CHROMIUM, args: ["--no-sandbox"] } } : {}),
+  },
   webServer: process.env.BASE_URL
     ? undefined
     : {

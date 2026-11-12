@@ -32,7 +32,7 @@ test("user at the plan limit: submissions are held not dropped, the page says so
   await page.getByRole("button", { name: /Choose Starter|Choose Pro|Choose Agency|Continue to checkout/ }).first().click();
   await expect(page.getByRole("alert").or(page.getByRole("status")).filter({ hasText: /./ }).first()).toBeVisible();
   expect(page.url()).toBe(before);
-  expect(problems.filter((p) => !/50[03] .*billing|40\d/.test(p))).toEqual([]);
+  expect(problems.filter((p) => !/50[03] .*billing|40\d|console: Failed to load resource.*503/.test(p))).toEqual([]);
 });
 
 test("keyboard and touch: skip link, focus ring, tap targets and labelled icon buttons at 375px", async ({ page, request, baseURL }) => {

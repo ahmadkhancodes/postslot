@@ -4,6 +4,8 @@ import { computeEntitlement, effectivePlan } from "@/lib/billing/entitlement";
 import { getStripe } from "@/lib/billing/stripe";
 import { currentUsage } from "@/lib/billing/usage";
 import { getDb } from "@/lib/db";
+import { releaseHeld } from "@/lib/delivery/process";
+import { log } from "@/lib/logger";
 import { json, withApi } from "@/lib/http";
 
 export const runtime = "nodejs";
@@ -20,6 +22,8 @@ export const GET = withApi(async (req) => {
     if (acct?.stripeCustomerId) {
       ent = await computeEntitlement(stripe, db.app, acct.stripeCustomerId, ent, Date.now());
       await db.setEntitlement(ctx.org.id, ent);
+      // Upgrade: release held submissions now instead of waiting for the Stripe webhook (idempotent, claimed atomically).
+      await releaseHeld(db, ctx.org.id).catch((e: Error) => log.error("release_held_failed", { message: e.message }));
     }
   }
   const plan = effectivePlan(ent);

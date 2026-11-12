@@ -9,7 +9,7 @@ export function getStripe(): Stripe | null {
   const key = env().STRIPE_SECRET_KEY;
   if (!key) return null;
   if (cached?.key === key) return cached.client;
-  cached = { key, client: new Stripe(key, { appInfo: { name: "buffersol-kit" }, maxNetworkRetries: 2 }) };
+  cached = { key, client: new Stripe(key, { appInfo: { name: "buffersol-kit" }, maxNetworkRetries: 2, timeout: 15_000 }) };
   return cached.client;
 }
 

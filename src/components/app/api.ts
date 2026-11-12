@@ -12,6 +12,12 @@ const MESSAGES: Record<string, string> = {
   invalid_url: "Enter a full URL starting with https://.",
   invalid_body: "Some fields are missing or invalid.",
   not_found: "That item no longer exists.",
+  invalid_input: "Some fields are missing or too long. Check them and try again.",
+  bad_json: "That request could not be read. Reload the page and try again.",
+  body_too_large: "That is too much text. Shorten it and try again.",
+  bad_origin: "The page looks out of date. Reload it and try again.",
+  service_unavailable: "The service is busy right now. Your work is not lost: wait a moment and try again.",
+  timeout: "This took too long. Try again in a moment.",
 };
 
 export function humanError(code: string | undefined, fallback = "Something went wrong. Try again in a moment."): string {
@@ -46,6 +52,7 @@ async function send<T>(path: string, init: { method?: string; body?: unknown }):
       headers: init.body === undefined ? undefined : { "content-type": "application/json" },
       body: init.body === undefined ? undefined : JSON.stringify(init.body),
       credentials: "same-origin",
+      signal: AbortSignal.timeout(30_000),
     });
     const text = await res.text();
     let parsed: unknown = {};
@@ -55,7 +62,8 @@ async function send<T>(path: string, init: { method?: string; body?: unknown }):
       return { ok: false, status: res.status, code, message: humanError(code) };
     }
     return { ok: true, data: parsed as T };
-  } catch {
+  } catch (e) {
+    if ((e as Error)?.name === "TimeoutError") return { ok: false, status: 0, code: "timeout", message: humanError("timeout") };
     return { ok: false, status: 0, code: "network", message: "Could not reach the server. Check your connection and try again." };
   }
 }

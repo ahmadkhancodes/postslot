@@ -8,14 +8,14 @@ import { withApi } from "@/lib/http";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** CSV of the current inbox view (form, filter and search apply), newest first, up to 5,000 rows. */
+/** CSV of the current inbox view (form, filter and search apply), newest first, up to 50,000 rows. */
 export const GET = withApi(async (req) => {
   const ctx = await requireOrg();
   requirePermission(ctx, "data", "read");
   const u = new URL(req.url);
   const db = await getDb();
   const [rows, forms] = await Promise.all([
-    listSubmissions(db, ctx.org.id, { formId: u.searchParams.get("form") ?? undefined, filter: parseFilter(u.searchParams.get("filter")), q: u.searchParams.get("q") ?? undefined, limit: 5000 }),
+    listSubmissions(db, ctx.org.id, { formId: u.searchParams.get("form") ?? undefined, filter: parseFilter(u.searchParams.get("filter")), q: u.searchParams.get("q") ?? undefined, limit: 50_000 }),
     db.docs<Form>("forms").find({ orgId: ctx.org.id }),
   ]);
   const csv = toCsv(rows, Object.fromEntries(forms.map((f) => [f._id, f.name])));

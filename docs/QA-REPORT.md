@@ -34,3 +34,12 @@ Method: the production build (`next start`, memory driver, `E2E_OUTBOX=1`, conso
 - **Info**: `type=url` fields (webhook URL, success URL) rely on the browser's own validation bubble for clearly malformed input; server-side refusals show a sentence.
 - **Info**: behind a proxy that does not forward the client IP, all visitors would share one sign-in rate-limit bucket. Vercel forwards it, so no action.
 - **Not testable here**: Stripe Checkout round trip and portal (no key), real provider mail, the Mongo driver, Lighthouse.
+
+## Hardening round (12 Nov 2026)
+Real browser: system Chromium via `PW_CHROMIUM=/usr/bin/chromium npx playwright test` (config passes it as `executablePath`). Full suite: 34 Playwright tests, 269 unit tests, lint (0 errors), typecheck and build green. Not deployed.
+
+New specs `tests/e2e/hardening.spec.ts` (7 tests): CSP console check across marketing, auth, inbox and every form tab; billing button gives an answer; inbox first-run checklist and keyboard shortcuts; `/api/health` content; tenant isolation by guessed ids (read, action, bulk, PATCH, UI); cleared session gives 401 JSON and the sign-in page; magic-link flood sends five mails and answers identically. New unit file `tests/unit/hardening.test.ts` (CSP vs source, health, logs, 503 mapping, key-guess 429, hostile/unicode/huge input, real Stripe signatures incl. replay, mark-spam period, stuck rows, export, link clock skew, checklist, shortcuts, bulk isolation) and `tests/unit/bundle-secrets.test.ts`.
+
+Findings: no CSP violation in any page; the built bundle holds no secret (only better-auth's empty env accessor name). Keyboard shortcuts initially ignored because the always-rendered mobile drawer counted as an open modal (now checks visibility). Test-only: `limits.spec.ts` now ignores the expected generic 503 console line from billing without Stripe (the response-level check is unchanged).
+
+Not testable here: Stripe Checkout round trip, real provider mail, Mongo driver (index/aggregate behaviour, slow-DB timing beyond the mapping tests), Lighthouse.

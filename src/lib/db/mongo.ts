@@ -260,8 +260,10 @@ export function createMongoDb(uri: string, dbName: string, app: string): Db {
       ]);
       const forms = await docs("forms").find({ orgId });
       const recipients = (await docs<{ _id: string; verifyTokenHash?: string }>("recipients").find({ orgId })).map(({ verifyTokenHash: _t, ...r }) => r);
-      const submissions = await docs("submissions").find({ orgId }, { sort: { receivedAt: -1 }, limit: 5000 });
-      return { billingAccount, entitlement, webhookEndpoints: endpoints.map(({ secret: _s, ...rest }) => rest), auditLog, forms, recipients, submissions };
+      const submissions = await docs("submissions").find({ orgId }, { sort: { receivedAt: -1 }, limit: 50_000 });
+      const deliveries = await docs("deliveries").find({ orgId }, { limit: 50_000 });
+      const receiptEvents = await docs("delivery_events").find({ orgId }, { limit: 200_000 });
+      return { billingAccount, entitlement, webhookEndpoints: endpoints.map(({ secret: _s, ...rest }) => rest), auditLog, forms, recipients, submissions, deliveries, receiptEvents };
     },
     async deleteOrgData(orgId) {
       const d = await db();
@@ -323,8 +325,10 @@ export async function ensureIndexesOn(d: IndexDb) {
   await ix("submissions", { app: 1, orgId: 1, searchText: "text" }, { name: "submissions_search", default_language: "none" });
   await ix("deliveries", { mailerMessageId: 1 }, { unique: true, sparse: true });
   await ix("deliveries", { submissionId: 1 });
+  await ix("deliveries", { app: 1, orgId: 1 });
   await ix("deliveries", { status: 1, nextAttemptAt: 1 });
   await ix("delivery_events", { submissionId: 1, at: 1 });
+  await ix("delivery_events", { app: 1, orgId: 1 });
   await ix("delivery_events", { expireAt: 1 }, { expireAfterSeconds: 0 });
   await ix("sender_allow", { app: 1, formId: 1, email: 1 }, { unique: true });
   await ix("bayes_tokens", { app: 1, scope: 1, token: 1 }, { unique: true });
