@@ -5,23 +5,22 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { product } from "@/config/product";
 import { buttonClass } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
-import { useViewer } from "@/lib/marketing-session";
+import { signOutAndGo, useViewer } from "@/lib/marketing-session";
 import { ctaFor } from "@/lib/marketing-cta";
-import { authClient } from "@/lib/auth/client";
-import { hardNavigate } from "@/components/app/api";
 
 const STAGGER_MS = 60;
+const STAGGER_CAP_MS = 400;
 
-/** Floating bar, off the top edge. Mobile: full-height panel, staggered links (60ms, 24px rise, <= 400ms total). */
+/**
+ * Compact bar floating 8px off the top edge, sized to its content, on a translucent blurred paper surface.
+ * Mobile: full-height panel at high opacity with a strong blur; links rise 24px and fade in, 60ms apart, capped at 400ms.
+ */
 export function SiteHeader() {
   const pathname = usePathname();
   const viewer = useViewer();
   const signedIn = viewer === "in";
   const cta = ctaFor(viewer, { href: "/sign-in", label: "Create a form" });
-  const signOut = async () => {
-    await authClient.signOut();
-    hardNavigate("/");
-  };
+  const signOut = () => signOutAndGo("/");
   // The menu counts as open only on the page it was opened on, so navigating closes it without an effect.
   const [openFor, setOpenFor] = useState<string | null>(null);
   const open = openFor === pathname;
@@ -84,8 +83,8 @@ export function SiteHeader() {
   ];
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-surface">
-      <div className="relative z-50 mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-2 sm:px-6 lg:px-8">
+    <header className="pointer-events-none fixed inset-x-0 top-2 z-50 flex justify-center px-2">
+      <div className="pointer-events-auto relative z-50 flex w-full max-w-5xl items-center justify-between gap-4 rounded border border-border bg-surface/80 py-1 pl-3 pr-1 backdrop-blur-md md:w-fit md:gap-8">
         <Link href="/" className="inline-flex min-h-11 items-center gap-2 rounded-sm heading-6 text-text focus-visible:focus-ring" aria-label={`${product.name} home`}>
           <span aria-hidden className="size-3 rounded-xs bg-accent" />
           {product.name}
@@ -111,11 +110,11 @@ export function SiteHeader() {
             aria-controls="mobile-menu"
             aria-label={open ? "Close menu" : "Open menu"}
             onClick={() => (open ? close() : setOpenFor(pathname))}
-            className="inline-flex size-11 items-center justify-center rounded-md text-text transition-colors duration-300 ease-out-kit hover:bg-surface-raised focus-visible:focus-ring md:hidden"
+            className="inline-flex size-11 items-center justify-center rounded-sm text-text transition-colors duration-300 ease-out-kit hover:bg-surface-raised focus-visible:focus-ring md:hidden"
           >
             <span aria-hidden className="relative block size-6">
-              <span className={cn("absolute left-1 right-1 top-2 h-0.5 rounded-sm bg-current transition-transform duration-300 ease-out-kit", open && "translate-y-1 rotate-45")} />
-              <span className={cn("absolute bottom-2 left-1 right-1 h-0.5 rounded-sm bg-current transition-transform duration-300 ease-out-kit", open && "-translate-y-1 -rotate-45")} />
+              <span className={cn("absolute left-1 right-1 top-2 h-0.5 rounded-sm bg-current transition-transform duration-500 ease-out-kit", open && "translate-y-1 rotate-45")} />
+              <span className={cn("absolute bottom-2 left-1 right-1 h-0.5 rounded-sm bg-current transition-transform duration-500 ease-out-kit", open && "-translate-y-1 -rotate-45")} />
             </span>
           </button>
         </div>
@@ -129,7 +128,7 @@ export function SiteHeader() {
         aria-label="Menu"
         inert={!open}
         className={cn(
-          "fixed inset-0 z-40 flex flex-col bg-surface px-4 pt-24 transition-[opacity,visibility] duration-200 ease-out-kit md:hidden",
+          "pointer-events-auto fixed inset-0 z-40 flex flex-col bg-surface/95 px-4 pt-24 backdrop-blur-xl transition-[opacity,visibility] duration-300 ease-out-kit md:hidden",
           open ? "visible opacity-100" : "invisible opacity-0",
         )}
       >
@@ -139,12 +138,12 @@ export function SiteHeader() {
               key={item.label}
               href={item.href}
               onClick={() => setOpenFor(null)}
-              style={{ transitionDelay: open ? `${i * STAGGER_MS}ms` : "0ms" }}
+              style={{ transitionDelay: open ? `${Math.min(i * STAGGER_MS, STAGGER_CAP_MS)}ms` : "0ms" }}
               className={cn(
-                "transition-[opacity,transform] duration-200 ease-out-kit focus-visible:focus-ring",
+                "transition-[opacity,transform] duration-500 ease-out-kit focus-visible:focus-ring",
                 open ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
                 item.kind === "cta"
-                  ? cn(buttonClass("primary", "lg"), "mt-8")
+                  ? cn(buttonClass("primary", "md"), "mt-8")
                   : "flex min-h-12 items-center border-b border-border heading-5 text-text",
               )}
             >

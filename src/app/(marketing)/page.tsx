@@ -49,7 +49,7 @@ const steps: Step[] = [
           <SessionCta href="/sign-in" label="Send test submission" size="md" variant="secondary" />
         </div>
         <p role="note" className="body-6 rounded-sm border border-warning bg-warning-surface p-3 text-text">
-          Input <span className="font-mono text-xs">email</span> has no name attribute, so its value will not be sent.
+          Input <span className="code-2">email</span> has no name attribute, so its value will not be sent.
         </p>
         <p className="caption-5 text-text-subtle">Illustration with fictional data.</p>
       </div>
@@ -99,7 +99,7 @@ const features: Feature[] = [
     visual: (
       <div className="flex flex-col gap-2 p-4">
         <StatusChip status="Spam blocked" />
-        <p className="font-mono text-xs text-text-subtle">honeypot filled · 7 links</p>
+        <p className="code-2 text-text-subtle">honeypot filled · 7 links</p>
       </div>
     ),
   },
@@ -118,7 +118,7 @@ const features: Feature[] = [
     title: "One line to install, every stack",
     body: "Snippets for HTML, React, Next.js, Astro, Vue, Svelte, Webflow, Framer and WordPress, with your key already filled in.",
     span: 3,
-    visual: <p className="break-all p-4 font-mono text-xs text-text-subtle">{`https://${product.host}/f/<form_key>`}</p>,
+    visual: <p className="break-all p-4 code-2 text-text-subtle">{`https://${product.host}/f/<form_key>`}</p>,
   },
   {
     title: "Also included",
@@ -160,10 +160,9 @@ export default function HomePage() {
   return (
     <>
       <Hero
-        title={<>Every form submission, delivered with a receipt</>}
+        title={<>Every form submission,{" "}<br className="max-md:hidden" />delivered with a receipt</>}
         subtitle="Point any HTML form at Postslot by BufferSol. We filter the spam, deliver to your inbox and stamp every message with its delivery status. Free for 250 submissions a month."
-        primaryCta={{ href: "/sign-in", label: "Create a free form" }}
-        secondaryCta={{ href: "/docs", label: "Read the docs" }}
+        primaryCta={{ href: "/sign-in", label: "Create a form" }}
         facts={facts}
         proof={
           <>

@@ -13,7 +13,7 @@ export function FinalCta({ title, body, cta, note }: { title: ReactNode; body?: 
             <h2 id="final-cta-title" className="heading-4 max-w-3xl text-text md:heading-2">{title}</h2>
             {body ? <p className="body-3 max-w-2xl text-text-subtle">{body}</p> : null}
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-              <SessionCta href={cta.href} label={cta.label} size="lg" />
+              <SessionCta href={cta.href} label={cta.label} size="md" />
               {note ? <div className="caption-2 text-text-subtle">{note}</div> : null}
             </div>
           </div>

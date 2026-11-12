@@ -38,7 +38,7 @@ export function Timeline({ steps }: { steps: TimelineStep[] }) {
         const deferred = s.state === "deferred";
         return (
           <li key={`${s.name}-${i}`} className="relative grid grid-cols-[auto_1fr] gap-x-4 pb-3 last:pb-0">
-            <span className="pt-0.5 font-mono text-xs tabular-nums text-text-muted">{s.time}</span>
+            <span className="pt-0.5 code-2 tabular-nums text-text-muted">{s.time}</span>
             <div className="relative flex min-w-0 flex-col pl-4">
               <span aria-hidden className={cn("absolute left-0 top-2 size-2 rounded-xs", deferred ? "bg-warning" : "bg-accent")} />
               {i < steps.length - 1 ? <span aria-hidden className="absolute -bottom-1 left-1 top-4 w-px bg-border-receipt" /> : null}
