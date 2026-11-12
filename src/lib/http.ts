@@ -49,11 +49,14 @@ export function allowedOrigins(): string[] {
 
 /**
  * CSRF guard for cookie-authenticated, state-changing requests (BACKEND_REUSE 1.3):
- * Origin (or Referer) must be ours. Requests with a Bearer/x-api-key header are not cookie-driven and pass.
+ * Origin (or Referer) must be ours. Requests with a Bearer/x-api-key header and no cookies are not cookie-driven and pass.
  */
 export function assertSameOrigin(req: Request, origins = allowedOrigins()): void {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return;
-  if (req.headers.get("authorization")?.startsWith("Bearer ") || req.headers.get("x-api-key")) return;
+  // Only a request without cookies may skip the Origin check by presenting a key: a cookie-authenticated request with a
+  // junk Authorization header is still a cookie request (docs/SECURITY-REVIEW.md S-5).
+  const keyAuth = req.headers.get("authorization")?.startsWith("Bearer ") || !!req.headers.get("x-api-key");
+  if (keyAuth && !req.headers.get("cookie")) return;
   const origin = req.headers.get("origin") ?? (() => {
     const ref = req.headers.get("referer");
     try { return ref ? new URL(ref).origin : null; } catch { return null; }

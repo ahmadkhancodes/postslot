@@ -71,3 +71,10 @@ Standing decisions are in docs/factory/BATCH1_PLAN.md (Mongo instead of Postgres
 - **D-M5-11 Mail events:** an unknown message id younger than 10 minutes gets 409 (provider retries); older ones get 200 and are dropped (events for mail we never sent).
 - **D-AUTO-IDX Auto indexes:** `getDb()` schedules `ensureIndexes` once per instance (memoized, not awaited so /api/health is not delayed, skipped in `next build`); failures log a scrubbed warning and retry on the next getDb(), index option conflicts (codes 85/86) are logged and skipped.
 - **D-L1 Light only (12 Nov 2026):** no dark mode anywhere (site, app, e-mail, OS fallback). Theme toggle, init script, `data-theme`, dark tokens and dark screenshots removed. `tests/unit/no-dark-mode.test.ts` guards it.
+
+## Security review (12 Nov 2026, docs/SECURITY-REVIEW.md)
+- **D-SEC-1 No Better Auth cookie cache.** Every session check reads the session store, so sign-out, session revocation and account deletion end a copied cookie at once (it lived up to 5 minutes before). One indexed read per request is the price.
+- **D-SEC-2 Account export follows roles.** Per workspace the export carries only the sections the caller's role can read in the app (`src/lib/account-export.ts`).
+- **D-SEC-3 Webhook address pinning (supersedes the "waits for the VPS" part of D-M5-8).** Production webhook POSTs go through `node:https` with a lookup that refuses private addresses, so the checked address is the connected one.
+- **D-SEC-4 API key actions.** Roles carry the plugin's `create/update/delete` next to our `manage`, so admins can manage keys as the UI says; members read only.
+- **D-SEC-5 Client IP trust.** `x-forwarded-for` (first entry) is trusted because Vercel overwrites it. Before moving any route behind another proxy (VPS), trust only the proxy-set header there; see SECURITY-REVIEW.md S-9.

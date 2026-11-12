@@ -66,7 +66,9 @@ export function createAuth(db: BetterAuthOptions["database"]) {
     session: {
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,
-      cookieCache: { enabled: true, maxAge: 300 },
+      // No signed cookie cache: with it a copied cookie kept working for up to 5 minutes after sign-out or a revoked
+      // session (docs/SECURITY-REVIEW.md S-1). Every session check reads the session store instead.
+      cookieCache: { enabled: false },
     },
     rateLimit: {
       enabled: true, window: 60, max: 60, storage: "database",

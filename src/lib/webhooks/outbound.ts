@@ -60,25 +60,24 @@ export async function attemptDelivery(
   let code: number | null = null;
   let error: string | null = null;
   try {
-    // Real network only (tests inject fetchFn): the host must resolve to public addresses, so a DNS name that points at a
-    // private or link-local address cannot be used to reach internal services.
-    if (!opts.fetchFn && process.env.NODE_ENV === "production" && !(await resolvesPublic(new URL(ep.url).hostname))) throw Object.assign(new Error("unsafe_target"), { name: "UnsafeTarget" });
-    const ctrl = AbortSignal.timeout(10_000);
-    const res = await fetchFn(ep.url, {
-      method: "POST",
-      signal: ctrl,
-      redirect: "manual",
-      headers: {
-        "content-type": "application/json",
-        "user-agent": `${product.name}-Webhooks/1.0`,
-        "x-webhook-id": d.id,
-        "x-webhook-event": d.event,
-        "x-webhook-signature": await signPayload(ep.secret, d.payload, Math.floor(now.getTime() / 1000)),
-      },
-      body: d.payload,
-    });
-    code = res.status;
-    if (!res.ok) error = `http_${res.status}`;
+    const headers = {
+      "content-type": "application/json",
+      "user-agent": `${product.name}-Webhooks/1.0`,
+      "x-webhook-id": d.id,
+      "x-webhook-event": d.event,
+      "x-webhook-signature": await signPayload(ep.secret, d.payload, Math.floor(now.getTime() / 1000)),
+    };
+    if (!opts.fetchFn && process.env.NODE_ENV === "production") {
+      // Real network: the host must resolve to public addresses, checked on the address actually connected to, so a
+      // DNS name that points (or re-points, DNS rebinding) at a private or link-local address cannot reach internal services.
+      if (!(await resolvesPublic(new URL(ep.url).hostname))) throw Object.assign(new Error("unsafe_target"), { name: "UnsafeTarget" });
+      code = await pinnedPost(ep.url, headers, d.payload, 10_000);
+    } else {
+      const res = await fetchFn(ep.url, { method: "POST", signal: AbortSignal.timeout(10_000), redirect: "manual", headers, body: d.payload });
+      code = res.status;
+      await res.body?.cancel().catch(() => undefined);
+    }
+    if (code < 200 || code > 299) error = `http_${code}`;
   } catch (e) {
     const name = (e as Error).name;
     error = name === "TimeoutError" ? "timeout" : name === "UnsafeTarget" ? "unsafe_target" : "network_error";
@@ -138,7 +137,7 @@ export function isSafeWebhookUrl(raw: string): boolean {
   if (u.protocol !== "https:" && !(process.env.NODE_ENV !== "production" && u.protocol === "http:")) return false;
   const h = u.hostname.toLowerCase();
   if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".internal") || h.endsWith(".local")) return false;
-  if (/^(127\.|10\.|192\.168\.|169\.254\.|0\.)/.test(h) || /^172\.(1[6-9]|2\d|3[01])\./.test(h)) return false;
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(h) && isPrivateIp(h)) return false; // the URL parser already turned 0x7f.1, 2130706433 etc. into dotted form
   if (h.startsWith("[") || h === "::1") return false;
   return true;
 }
@@ -168,4 +167,40 @@ export async function resolvesPublic(host: string, lookup: (h: string) => Promis
 async function defaultLookup(h: string) {
   const { lookup } = await import("node:dns/promises");
   return lookup(h, { all: true, verbatim: true });
+}
+
+type LookupCb = (err: NodeJS.ErrnoException | null, address: string | { address: string; family: number }[], family?: number) => void;
+
+/**
+ * dns.lookup for outbound webhook sockets: fails when any address of the host is private, so the address the socket
+ * connects to is the one that was checked (no window between the check and the connection; docs/SECURITY-REVIEW.md S-3).
+ */
+export function safeLookup(
+  hostname: string,
+  options: { all?: boolean; family?: number | string } | number | undefined,
+  cb: LookupCb,
+  lookup: (h: string) => Promise<{ address: string; family: number }[]> = defaultLookup,
+): void {
+  lookup(hostname).then((addrs) => {
+    if (!addrs.length || addrs.some((a) => isPrivateIp(a.address))) {
+      cb(Object.assign(new Error("unsafe_target"), { name: "UnsafeTarget", code: "EUNSAFE" }), "", 4);
+      return;
+    }
+    if (typeof options === "object" && options?.all) cb(null, addrs);
+    else cb(null, addrs[0]!.address, addrs[0]!.family);
+  }, (e: NodeJS.ErrnoException) => cb(e, "", 4));
+}
+
+/** POST without following redirects, body of the answer discarded, total time capped. Returns the status code. */
+export async function pinnedPost(url: string, headers: Record<string, string>, body: string, timeoutMs: number, lookup: typeof safeLookup = safeLookup): Promise<number> {
+  const u = new URL(url);
+  const mod = u.protocol === "https:" ? await import("node:https") : await import("node:http");
+  return new Promise((resolve, reject) => {
+    const req = mod.request(u, { method: "POST", headers: { ...headers, "content-length": String(Buffer.byteLength(body)) }, lookup: lookup as never, signal: AbortSignal.timeout(timeoutMs) }, (res) => {
+      res.resume(); // never buffer the receiver's answer
+      resolve(res.statusCode ?? 0);
+    });
+    req.on("error", (e) => reject(e.name === "AbortError" ? Object.assign(new Error("timeout"), { name: "TimeoutError" }) : (e as Error & { code?: string }).code === "EUNSAFE" ? Object.assign(new Error("unsafe_target"), { name: "UnsafeTarget" }) : e));
+    req.end(body);
+  });
 }
