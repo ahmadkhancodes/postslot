@@ -37,7 +37,7 @@ export interface FormResult {
 
 const html = (title: string, body: string, status: number, headers: Record<string, string>) =>
   new Response(
-    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${title}</title></head><body style="font-family:system-ui,sans-serif;max-width:32rem;margin:15vh auto;padding:0 1rem;line-height:1.5"><h1 style="font-size:1.4rem">${title}</h1><p>${body}</p></body></html>`,
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${title}</title></head><body style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1a1d24;max-width:32rem;margin:15vh auto;padding:0 1rem;line-height:1.5"><h1 style="font-size:1.5rem;font-weight:500;font-family:Georgia,serif">${title}</h1><p>${body}</p></body></html>`,
     { status, headers: { ...BASE_HEADERS, ...headers, "content-type": "text/html; charset=utf-8" } },
   );
 

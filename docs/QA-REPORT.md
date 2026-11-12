@@ -43,3 +43,19 @@ New specs `tests/e2e/hardening.spec.ts` (7 tests): CSP console check across mark
 Findings: no CSP violation in any page; the built bundle holds no secret (only better-auth's empty env accessor name). Keyboard shortcuts initially ignored because the always-rendered mobile drawer counted as an open modal (now checks visibility). Test-only: `limits.spec.ts` now ignores the expected generic 503 console line from billing without Stripe (the response-level check is unchanged).
 
 Not testable here: Stripe Checkout round trip, real provider mail, Mongo driver (index/aggregate behaviour, slow-DB timing beyond the mapping tests), Lighthouse.
+
+## Post-redesign regression pass (12 Nov 2026)
+Specs: `tests/e2e/qa2/redesign.spec.ts` (4 tests) on top of the earlier `qa/` journeys, which already click every P0 journey as visitor, free user, user at the limit, paid, team and admin. Unit guard: `tests/unit/brand-consistency.test.ts`. Result: lint 0 errors, typecheck, 272 unit tests, build, 38 Playwright tests green. Not deployed.
+
+Covered: every public page plus the 404 at 375 and 1440 (body background light, `color-scheme: light`, H1 serif and body sans, no radius above 4px except round elements, no violet, no clipped text, no horizontal scroll, no console errors or hydration warnings); every `/app` screen signed in (200, brand, no scroll, no console errors); mobile menu closes on Escape and Tab shows a visible focus ring; OG, twitter, icon and apple-icon routes answer 200.
+
+Defects found and fixed:
+1. **E-mails still had the old brand** (violet "test submission" banner `#f1eefb`/`#3b2a7a`, cold greys `#181818 #f7f7f7 #f6f6f8 #17181c`, 8px radius, system sans headings). Magic link, invite, notice, submission (default and compact), recipient-confirm and owner-notice mails now use ink `#1a1d24`, stone `#f6f5f1`, rules `#e4e2dc`, manila for the test banner, 2 to 4px radius and a Georgia serif heading (web fonts do not load in mail clients).
+2. **Raw HTML responses** (form endpoint error/thanks page, unsubscribe page) used default system styling and a blue link; now ink text, serif heading, rust link.
+3. **`global-error.tsx`** replaces the root layout, so it lost the three font variables and fell back to Georgia/system; it now loads them.
+Regression: `brand-consistency.test.ts` fails on any old hex, "geist/violet/purple/indigo" in `src`, on a global error without fonts, and on rendered mails missing the ink/stone colours. `m3.test.ts` updated for the new rule colour (assertion not loosened).
+
+Left open:
+- **Low**: mail HTML cannot use Newsreader/Schibsted (no web fonts in mail clients); Georgia and the system sans are the closest safe fallback.
+- **Low**: the dev outbox endpoint exposes text only, so mail HTML colours are checked at unit level, not in the browser.
+- Earlier open items above are unchanged. Stripe Checkout round trip, real provider mail, Mongo driver and Lighthouse remain untestable here.

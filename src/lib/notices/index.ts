@@ -13,7 +13,7 @@ import { sendMail, transportFromEnv } from "@/lib/mail";
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const wrap = (paras: string[], cta?: { href: string; label: string }) =>
-  `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#17181c;font-size:15px;line-height:1.5;max-width:560px">${paras.map((p) => `<p>${p}</p>`).join("")}${cta ? `<p><a href="${esc(cta.href)}">${esc(cta.label)}</a></p>` : ""}<p style="color:#6b6e76;font-size:12px">Postslot by BufferSol</p></div>`;
+  `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1d24;font-size:15px;line-height:1.5;max-width:560px">${paras.map((p) => `<p>${p}</p>`).join("")}${cta ? `<p><a href="${esc(cta.href)}">${esc(cta.label)}</a></p>` : ""}<p style="color:#63666e;font-size:12px">Postslot by BufferSol</p></div>`;
 
 async function sendTo(emails: string[], msg: { subject: string; text: string; html: string; tags: Record<string, string> }, deps: Deps): Promise<number> {
   const transport = deps.transport ?? transportFromEnv();

@@ -61,7 +61,7 @@ describe("templates", () => {
     expect(d.html).toContain("<table");
     expect(d.html).toContain("Mara &lt;b&gt;O&lt;/b&gt;");
     expect(d.html).not.toContain("<b>O</b>");
-    expect(c.html).toContain("border:1px solid #e1e2e6");
+    expect(c.html).toContain("border:1px solid #e4e2dc");
     expect(c.html).not.toBe(d.html);
     expect(p.html).toBe("");
     for (const r of [d, c, p]) {
