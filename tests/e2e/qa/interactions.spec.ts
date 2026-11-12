@@ -110,7 +110,7 @@ test("unverified spam: link-stuffed message is quarantined and 'Not spam' releas
   await expect(row).toBeVisible({ timeout: 20_000 });
   await row.click();
   await page.getByRole("button", { name: "Not spam" }).click();
-  await expect(page.getByText(/Released/)).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Released. It is on its way" })).toBeVisible();
   await page.goto("/app");
   await expect(page.getByRole("link", { name: /Pills/ })).toBeVisible({ timeout: 20_000 });
 });

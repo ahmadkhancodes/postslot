@@ -27,7 +27,7 @@ export const forms: DocPage = {
     {
       heading: "Special fields",
       body: [
-        "Fields that start with an underscore, and a few well known names, are read by Postslot and are not shown as content: _replyto (or email) sets the Reply-To of the notification, _subject sets the subject, from_name sets the sender name, _redirect picks the page after a human post, and _gotcha (or botcheck) is the honeypot. Everything else is stored and shown as you sent it.",
+        "Fields that start with an underscore, and a few well known names, are read by Postslot and are not shown as content: _replyto (or email) sets the Reply-To of the notification, _subject sets the subject, from_name sets the sender name, _redirect (or redirect, or _next) picks the page after a human post, and _gotcha (or botcheck, or _honey) is the honeypot. access_key, _captcha and _template, which other form services use, are ignored. Everything else is stored and shown as you sent it.",
         "A redirect posted in _redirect is used only when its origin is one of the form's allowed origins, the posting site or our own host. Anything else falls back to the form's success URL. That stops it being used as an open redirect.",
       ],
       code: {

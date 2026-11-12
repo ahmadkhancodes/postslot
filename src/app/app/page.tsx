@@ -1,6 +1,7 @@
 import { DownloadSimple, MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { Meter } from "@/components/app/meter";
+import { CreateForm } from "@/components/app/forms/create-form";
 import { checklist } from "@/lib/onboarding/checklist";
 import { PageHeader } from "@/components/app/page-header";
 import { BulkActions } from "@/components/app/inbox/bulk-actions";
@@ -68,11 +69,20 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
     return (
       <>
         <PageHeader title="Inbox" description="Every submission, with the receipt that shows where it went." />
-        <EmptyState
-          title="Create your first form"
-          body="A form is one endpoint URL. Point your HTML form at it, confirm your email address, and submissions show up here with a delivery receipt."
-          action={<Link href="/app/forms" className={buttonClass("primary")}>Create a form</Link>}
-        />
+        {can(ctx.role, "data", "write") ? (
+          <section aria-label="Create your first form" className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <h2 className="title-3 text-text">Create your first form</h2>
+              <p className="body-6 text-text-subtle">A form is one endpoint URL. Create it, send yourself a test, then point your site&apos;s form at it. Mail goes to {ctx.user.email}, already confirmed.</p>
+            </div>
+            <CreateForm defaultName="Contact form" label="Form name" />
+          </section>
+        ) : (
+          <EmptyState
+            title="No forms yet"
+            body="An owner or admin of this organization creates forms. Submissions show up here with a delivery receipt."
+          />
+        )}
       </>
     );
 

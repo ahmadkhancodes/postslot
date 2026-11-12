@@ -1,4 +1,5 @@
 import { product as p } from "@/config/product";
+import { aiBuilderPrompt } from "@/lib/onboarding/snippets";
 import type { DocPage } from "./types";
 
 const endpoint = `${p.url}/f/<form_key>`;
@@ -59,15 +60,8 @@ const svelte = `<form action="${endpoint}" method="POST">
   <button type="submit">Send</button>
 </form>`;
 
-/** Same prompt for every builder, with one placeholder for the key. No key is filled in: the user pastes their own. */
-const aiPrompt = (where: string) => `Make the contact form in ${where} send its submissions to ${p.name}.
-
-- Post the form to ${endpoint} with method POST. Use a normal HTML form action, or fetch with FormData. Do not use a mailto link, a console.log or a mock handler.
-- Replace <form_key> in that URL with my form key. I will paste my key where <form_key> is; do not invent one. If you cannot see a key, leave the placeholder and tell me exactly which line to edit.
-- Give every input a name attribute (for example name, email, message). Inputs without a name are not sent.
-- Keep the page working without extra libraries and without any secret in the code. The form key is public by design.
-- After the post, show a thank you message, or let ${p.name} redirect to my own thank you page.
-- Docs if you need them: ${p.url}/llms.txt`;
+/** Same prompt for every builder, with one placeholder for the key. No key is filled in here: the user pastes their own. */
+const aiPrompt = (where: string) => aiBuilderPrompt(where, endpoint, p.url);
 
 export const install: DocPage = {
   slug: "install",

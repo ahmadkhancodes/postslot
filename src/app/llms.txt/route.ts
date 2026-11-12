@@ -23,7 +23,7 @@ export function GET() {
     "- Spam never counts toward the limit. Over the limit, legitimate submissions are held in the inbox and released on upgrade or at the month reset; nothing is dropped.",
     "- Delivery receipt steps: Received, Sorted, Dispatched, then Deferred, Accepted or Returned. Accepted means the recipient's mail server took the message, not that it reached the inbox.",
     "- Email is sent through a transactional email provider. Postslot does not run its own mail servers today; a custom sending domain (SPF, DKIM, DMARC records) can be prepared and checked, and depends on a SMTP path that is not live yet.",
-    "- Field names: _replyto or email sets Reply-To, _subject the subject, _redirect the success page, _gotcha is the honeypot. Inputs without a name attribute are not sent by browsers.",
+    "- Field names: _replyto or email sets Reply-To, _subject the subject, _redirect (also redirect or _next) the success page, _gotcha (also botcheck or _honey) is the honeypot; access_key, _captcha and _template from other form services are ignored. Inputs without a name attribute are not sent by browsers.",
     ...compareEntries.map((c) => `- [${c.title}](${u(`/compare/${c.slug}`)}): Dated comparison, checked ${c.checked}`),
     `- [Full documentation as one file](${u("/llms-full.txt")}): All docs in markdown`,
     "",

@@ -6,6 +6,8 @@ import { requireOrg } from "@/lib/auth/session";
 import { effectivePlan } from "@/lib/billing/entitlement";
 import { currentUsage } from "@/lib/billing/usage";
 import { getDb } from "@/lib/db";
+import { planThatFits } from "@/lib/billing/recommend";
+import type { Submission } from "@/lib/forms/types";
 import { BillingClient } from "./billing-client";
 
 export const metadata = { title: "Billing" };
@@ -20,6 +22,10 @@ export default async function BillingPage({ searchParams }: { searchParams: SP }
   const ent = await db.getEntitlement(ctx.org.id);
   const plan = effectivePlan(ent);
   const usage = await currentUsage(db, ctx.org.id, METERS_SHOWN);
+  // Day-7 decision: how many legitimate submissions wait over the limit, and which plan would take them all.
+  const held = await db.docs<Submission>("submissions").count({ orgId: ctx.org.id, status: "held", holdReason: "over_limit" });
+  const subs = usage.find((u) => u.meter === "submissions");
+  const fits = planThatFits(plan.id, { submissions: (subs?.used ?? 0) + held }, held > 0 || subs?.level === "over");
   const want = one(sp.plan);
   const wanted = want ? planById(want) : undefined;
   return (
@@ -34,8 +40,11 @@ export default async function BillingPage({ searchParams }: { searchParams: SP }
         renewsAt={ent?.expiresAt ?? null}
         cancelAtPeriodEnd={!!ent?.cancelAtPeriodEnd}
         usage={usage}
+        held={held}
+        fits={fits?.id ?? null}
         preselect={wanted && wanted.id !== "free" ? { plan: wanted.id, interval: one(sp.interval) === "month" ? "month" : "year" } : null}
         returnedSession={one(sp.session_id) ?? null}
+        checkoutCanceled={one(sp.checkout) === "canceled"}
       />
     </>
   );

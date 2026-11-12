@@ -12,6 +12,8 @@ const schema = z.object({
   BETTER_AUTH_SECRET: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  /** Test only: a local Stripe stand-in (tests/e2e/billing). Ignored unless the key is a test key. */
+  STRIPE_API_BASE: z.string().url().optional(),
   MAIL_PROVIDER: z.enum(["resend", "console", "smtp", "none"]).optional(),
   RESEND_API_KEY: z.string().optional(),
   MAIL_FROM: z.string().optional(),

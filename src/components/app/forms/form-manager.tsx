@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/components/app/api";
@@ -9,7 +10,11 @@ import { cn } from "@/components/ui/cn";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { Badge } from "@/components/ui/states";
+import { product } from "@/config/product";
 import type { Snippet } from "@/lib/onboarding/snippets";
+import { TestSend } from "@/components/app/forms/test-send";
+
+const RECIPIENTS_BY_PLAN = product.plans.filter((p) => p.prices.length).map((p) => `${p.name} confirms ${p.limits.recipients} addresses`).join(", ");
 
 interface RecipientView { id: string; email: string; verified: boolean; bounced: string | null }
 interface FormView { id: string; name: string; status: string; redirectUrl: string; allowedOrigins: string[]; altchaEnabled: boolean; spamMode: string; blockedCount: number; subjectTemplate: string }
@@ -35,7 +40,7 @@ function SnippetPicker({ endpoint, snippets }: { endpoint: string; snippets: Sni
               type="button"
               aria-selected={x.id === id}
               onClick={() => setId(x.id)}
-              className={cn("min-h-11 whitespace-nowrap rounded-md px-3 body-5 transition-colors duration-300 focus-visible:focus-ring", x.id === id ? "bg-surface-sunken text-text" : "text-text-subtle hover:bg-surface-raised hover:text-text")}
+              className={cn("min-h-11 min-w-11 whitespace-nowrap rounded-md px-3 body-5 transition-colors duration-300 focus-visible:focus-ring", x.id === id ? "bg-surface-sunken text-text" : "text-text-subtle hover:bg-surface-raised hover:text-text")}
             >
               {x.label}
             </button>
@@ -57,14 +62,14 @@ function Recipients({ formId, recipients, canWrite }: { formId: string; recipien
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
-  const [note, setNote] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
+  const [note, setNote] = useState<{ tone: "ok" | "err"; text: string; upgrade?: boolean } | null>(null);
   async function call(key: string, path: string, init: { method?: string; body?: unknown }, ok: string) {
     setBusy(key);
     setNote(null);
     const r = await api(path, init);
     setBusy(null);
     if (r.ok) { setNote({ tone: "ok", text: ok }); router.refresh(); }
-    else setNote({ tone: "err", text: r.code === "plan_required" ? "Your plan's recipient limit is reached. Remove one or upgrade." : r.message });
+    else setNote(r.code === "plan_required" ? { tone: "err", text: `Your plan's recipient limit is reached. Remove one, or upgrade: ${RECIPIENTS_BY_PLAN}.`, upgrade: true } : { tone: "err", text: r.message });
     return r.ok;
   }
   return (
@@ -93,7 +98,7 @@ function Recipients({ formId, recipients, canWrite }: { formId: string; recipien
             <Button type="submit" loading={busy === "add"}>Add and confirm</Button>
           </form>
         ) : null}
-        {note ? <p role={note.tone === "err" ? "alert" : "status"} className={`caption-2 ${note.tone === "err" ? "text-danger" : "text-text-subtle"}`}>{note.text}</p> : null}
+        {note ? <p role={note.tone === "err" ? "alert" : "status"} className={`caption-2 ${note.tone === "err" ? "text-danger" : "text-text-subtle"}`}>{note.text}{note.upgrade ? <> <Link href="/app/billing" className="underline underline-offset-4">See plans</Link></> : null}</p> : null}
       </div>
     </Panel>
   );
@@ -171,9 +176,10 @@ function DangerZone({ formId, canWrite }: { formId: string; canWrite: boolean })
   );
 }
 
-export function FormManager({ form, endpoint, recipients, snippets, canWrite }: { form: FormView; endpoint: string; recipients: RecipientView[]; snippets: Snippet[]; canWrite: boolean }) {
+export function FormManager({ form, endpoint, recipients, snippets, canWrite, firstRun = false }: { form: FormView; endpoint: string; recipients: RecipientView[]; snippets: Snippet[]; canWrite: boolean; firstRun?: boolean }) {
   return (
     <div className="flex flex-col gap-6">
+      {firstRun && canWrite ? <TestSend formId={form.id} canWrite={canWrite} paused={form.status !== "active"} /> : null}
       <SnippetPicker endpoint={endpoint} snippets={snippets} />
       <Recipients formId={form.id} recipients={recipients} canWrite={canWrite} />
       <Settings form={form} canWrite={canWrite} origin={new URL(endpoint).origin} />

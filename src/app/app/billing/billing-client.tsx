@@ -19,8 +19,14 @@ interface Props {
   renewsAt: number | null;
   cancelAtPeriodEnd: boolean;
   usage: UsageState[];
+  /** Legitimate submissions held over the limit right now. */
+  held: number;
+  /** Smallest plan that covers this month's submissions plus the held ones (null when the current plan does). */
+  fits: PlanId | null;
   preselect: { plan: PlanId; interval: Interval } | null;
   returnedSession: string | null;
+  /** Back from Stripe Checkout with Cancel (cancel_url). */
+  checkoutCanceled: boolean;
 }
 
 const money = (cents: number) =>
@@ -89,11 +95,17 @@ export function BillingClient(p: Props) {
 
   return (
     <div className="flex flex-col gap-6">
+      {p.checkoutCanceled && !p.isPaid ? <Notice title="Checkout canceled">Nothing was charged. You are still on {plan.name}; pick a plan below whenever you are ready.</Notice> : null}
       {verifying ? <Notice title="Confirming your payment">This takes a few seconds.</Notice> : null}
       {activated ? <Notice tone="success" title="Your plan is active">You are now on {activated}. A receipt is on its way to your email.</Notice> : null}
       {error ? (
         <Notice tone={error.code === "billing_unavailable" ? "info" : "danger"} title={error.code === "billing_unavailable" ? "Billing is not connected yet" : "That did not go through"}>
           {error.code === "billing_unavailable" ? "Plans can be chosen here once payments are switched on. Nothing was charged." : error.message}
+        </Notice>
+      ) : null}
+      {p.held > 0 && !activated ? (
+        <Notice tone="warning" title={`${p.held.toLocaleString("en-US")} submission${p.held === 1 ? " is" : "s are"} waiting over your limit`}>
+          {`They are safe in your inbox and nothing was dropped. ${p.fits ? `Upgrading to ${planById(p.fits)?.name} releases them right away` : "Upgrading releases them right away"}; otherwise they go out when the month resets.`}
         </Notice>
       ) : null}
       {!p.canManage ? <Notice title="Read only">Only organization owners can change the plan or payment method. Ask an owner if you need an upgrade.</Notice> : null}
@@ -164,7 +176,7 @@ export function BillingClient(p: Props) {
               >
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="heading-6 text-text">{pl.name}</h3>
-                  {current ? <Badge tone="success">Current</Badge> : null}
+                  {current ? <Badge tone="success">Current</Badge> : p.fits === pl.id ? <Badge tone="warning">Fits your usage</Badge> : null}
                 </div>
                 <p className="body-6 text-text-subtle">{pl.tagline}</p>
                 <p className="text-text">

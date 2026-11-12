@@ -101,7 +101,12 @@ async function readBounded(req: Request): Promise<Uint8Array> {
   return out;
 }
 
-const SPECIAL = new Set(["_replyto", "replyto", "_subject", "subject", "from_name", "_from_name", "_redirect", "redirect", "_gotcha", "botcheck", "ps_token", "altcha"]);
+// Formspree (_next, _replyto, _subject), Web3Forms (access_key, redirect, botcheck) and FormSubmit (_next, _honey, _captcha,
+// _template) names are understood too, so a form moved from those services works after changing only its action.
+const SPECIAL = new Set([
+  "_replyto", "replyto", "_subject", "subject", "from_name", "_from_name", "_redirect", "redirect", "_next", "_gotcha", "botcheck", "_honey",
+  "ps_token", "altcha", "access_key", "_captcha", "_template",
+]);
 
 export interface Normalised {
   fields: RawFields;
@@ -123,13 +128,13 @@ export function normaliseFields(raw: RawFields): Normalised {
     return undefined;
   };
   const replyTo = normEmail(get("_replyto", "replyto") ?? raw.email ?? "") ?? undefined;
-  const hp = get("_gotcha", "botcheck");
+  const hp = get("_gotcha", "botcheck", "_honey");
   return {
     fields,
     replyTo,
     fromName: (get("from_name", "_from_name") ?? undefined)?.slice(0, 120),
     subject: (get("_subject", "subject") ?? undefined)?.replace(/[\r\n]+/g, " ").slice(0, 200),
-    redirect: get("_redirect", "redirect"),
+    redirect: get("_redirect", "redirect", "_next"),
     honeypotFilled: !!hp && !["false", "0", "off", "no"].includes(hp.toLowerCase()),
     psToken: get("ps_token"),
     altcha: get("altcha"),
