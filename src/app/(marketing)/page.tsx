@@ -1,8 +1,8 @@
+import { SessionCta } from "@/components/marketing/session-cta";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ogImageUrl, twitterImageUrl } from "@/lib/seo";
 import { Section } from "@/components/ui/layout";
-import { ButtonLink } from "@/components/ui/button";
 import {
   CompareTable, Faq, Features, FinalCta, Hero, HowItWorks, InboxExplainer, PricingTable, Problem, TaglineReveal,
   type FaqItem, type Feature, type ProblemItem, type Step,
@@ -46,7 +46,7 @@ const steps: Step[] = [
     visual: (
       <div className="flex flex-col gap-4 rounded border border-border bg-surface p-6 shadow-stamp">
         <div className="flex flex-wrap items-center gap-4">
-          <ButtonLink href="/sign-in" size="md" variant="secondary">Send test submission</ButtonLink>
+          <SessionCta href="/sign-in" label="Send test submission" size="md" variant="secondary" />
         </div>
         <p role="note" className="body-6 rounded-sm border border-warning bg-warning-surface p-3 text-text">
           Input <span className="font-mono text-xs">email</span> has no name attribute, so its value will not be sent.

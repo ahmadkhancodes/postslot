@@ -72,6 +72,8 @@ export function createAuth(db: BetterAuthOptions["database"]) {
       enabled: true, window: 60, max: 60, storage: "database",
       // Per client IP. Sign-in by magic link also has a per-address limit in sendMagicLink; invitations a per-workspace one.
       customRules: {
+        // Every marketing page reads the session once (header swap), so it gets a roomier budget than the 60/min default.
+        "/get-session": { window: 60, max: 600 },
         "/sign-in/magic-link": { window: 600, max: 30 },
         "/magic-link/verify": { window: 600, max: 60 },
         "/organization/invite-member": { window: 3600, max: 60 },

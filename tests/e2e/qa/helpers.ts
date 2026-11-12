@@ -41,6 +41,6 @@ export function watch(page: Page) {
   page.on("console", (m) => { if (noise(m.text())) return; if (m.type() === "error" || /hydrat/i.test(m.text())) problems.push(`console: ${m.text()}`); });
   page.on("pageerror", (e) => problems.push(`pageerror: ${page.url()} ${e.message.slice(0, 80)}`));
   page.on("requestfailed", (r) => noise(r.url() + r.failure()?.errorText) || problems.push(`failed: ${r.url()} ${r.failure()?.errorText}`));
-  page.on("response", (r) => { if (r.status() >= 500) problems.push(`${r.status()} ${r.url()}`); });
+  page.on("response", (r) => { if (r.status() === 429) problems.push(`429 ${r.url()}`); if (r.status() >= 500) problems.push(`${r.status()} ${r.url()}`); });
   return problems;
 }
