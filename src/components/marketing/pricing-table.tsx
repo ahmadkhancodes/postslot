@@ -5,6 +5,8 @@ import { product, plans, type Interval, type Plan, type PlanPrice } from "@/conf
 import { buttonClass } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/components/ui/cn";
+import { useViewer } from "@/lib/marketing-session";
+import { planCtaFor } from "@/lib/marketing-cta";
 
 const money = (cents: number) =>
   new Intl.NumberFormat("en-US", {
@@ -42,6 +44,7 @@ const RISK_PAID = "Cancel anytime. Export your data.";
 
 export function PricingTable({ id = "pricing", title }: { id?: string; title?: string }) {
   const [interval, setBilling] = useState<Interval>(product.defaultInterval);
+  const viewer = useViewer();
   const saving = annualSavings();
   const savingText = saving ? (saving.min === saving.max ? `${saving.max}%` : `${saving.min}% to ${saving.max}%`) : null;
   const options: { id: Interval; label: string }[] = [
@@ -82,7 +85,7 @@ export function PricingTable({ id = "pricing", title }: { id?: string; title?: s
         {plans.map((plan) => {
           const price = priceFor(plan, interval);
           const free = !price;
-          const href = `/sign-in?plan=${plan.id}&interval=${price?.interval ?? interval}`;
+          const cta = planCtaFor(viewer, plan, free, price?.interval ?? interval);
           return (
             <li
               key={plan.id}
@@ -104,7 +107,7 @@ export function PricingTable({ id = "pricing", title }: { id?: string; title?: s
                 <span className="body-6 text-text-subtle">{free ? "forever" : `per ${price.interval}`}</span>
               </p>
               <div className="pb-3">
-                <Link href={href} className={cn(buttonClass(plan.featured ? "primary" : "secondary", "md"), "w-full")}>{plan.cta}</Link>
+                <Link href={cta.href} className={cn(buttonClass(plan.featured ? "primary" : "secondary", "md"), "w-full")}>{cta.label}</Link>
               </div>
               <p className="caption-2 pb-6 text-text-subtle">{free ? RISK_FREE : RISK_PAID}</p>
               <ul className="flex flex-col gap-2 border-t border-dashed border-border-strong pt-6">

@@ -1,6 +1,6 @@
+import { SessionCta } from "./session-cta";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/layout";
 
 export interface HeroProps {
@@ -25,7 +25,7 @@ export function Hero({ title, subtitle, primaryCta, secondaryCta, facts, proof, 
             <h1 id="hero-title" className="heading-3 text-text md:heading-2">{title}</h1>
             <p className="body-3 max-w-xl text-text-subtle md:title-2 md:font-normal">{subtitle}</p>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-              <ButtonLink href={primaryCta.href} size="lg">{primaryCta.label}</ButtonLink>
+              <SessionCta href={primaryCta.href} label={primaryCta.label} size="lg" />
               {secondaryCta ? (
                 <Link href={secondaryCta.href} className="inline-flex min-h-11 items-center rounded-sm button-md text-text underline decoration-border-strong underline-offset-4 transition-colors duration-300 ease-out-kit hover:text-accent hover:decoration-accent focus-visible:focus-ring">
                   {secondaryCta.label}
