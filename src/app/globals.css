@@ -219,3 +219,19 @@
 .kit-postmark { transform: rotate(-8deg); animation: kit-press 500ms var(--ease-out-kit) both; }
 @keyframes kit-press { from { opacity: 0; transform: scale(1.06) rotate(-8deg); } to { opacity: 1; transform: scale(1) rotate(-8deg); } }
 @media (prefers-reduced-motion: reduce) { .kit-postmark { animation: none; opacity: 1; } }
+
+/* Tailwind v4 no longer sets a pointer cursor on buttons. Anything you can click shows the hand. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  select,
+  label[for],
+  input:is([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="file"]):not(:disabled) {
+    cursor: pointer;
+  }
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}
