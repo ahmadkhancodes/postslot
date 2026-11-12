@@ -30,11 +30,11 @@ export default async function UsagePage() {
       <div className="flex flex-col gap-8">
         <div className="max-w-md"><Meter state={usageState("submissions", c.submissions, report.limit)} /></div>
         {c.held > 0 ? <Notice tone="warning" title={`${fmt(c.held)} held this month`}>These submissions are safe. They are released when you upgrade or the month resets, and nothing is dropped.</Notice> : null}
-        <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="grid gap-px overflow-hidden rounded border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
           {tiles.map((t) => (
-            <div key={t.label} className="flex flex-col gap-1 rounded-lg border border-border bg-surface p-6">
-              <dt className="title-4 text-text-subtle">{t.label}</dt>
-              <dd className="heading-4 tabular-nums text-text">{fmt(t.value)}</dd>
+            <div key={t.label} className="flex flex-col gap-1 bg-surface p-6">
+              <dt className="label-mono text-text-subtle">{t.label}</dt>
+              <dd className="heading-3 tabular-nums text-text">{fmt(t.value)}</dd>
               <dd className="caption-2 text-text-subtle">{t.hint}</dd>
             </div>
           ))}

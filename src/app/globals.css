@@ -2,61 +2,71 @@
 
 /*
  * Universal kit tokens (docs/factory/DESIGN_PLAYBOOK.md §3, §5, §6).
- * Postslot theme (docs/DESIGN.md): cool neutrals + postmark violet. Components reference role tokens only.
+ * Postslot theme (docs/design-brief.md §4): ink, paper, manila and one rust accent. Components reference role tokens only.
  */
 :root {
+  --font-display-family: var(--font-kit-display), ui-serif, Georgia, serif;
   --font-sans-family: var(--font-kit-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono-family: var(--font-kit-mono), ui-monospace, monospace;
 
-  /* raw ramp: Postslot cool neutral (docs/DESIGN.md section 6) */
+  /* raw ramp: neutral stone, ink at the dark end */
   --n-0: #ffffff;
-  --n-50: #f6f6f8;
-  --n-100: #eeeef1;
-  --n-200: #e1e2e6;
-  --n-300: #c9cbd1;
-  --n-400: #a1a4ac;
-  --n-500: #6b6e76;
-  --n-600: #55585f;
-  --n-700: #3d4047;
-  --n-800: #272a30;
-  --n-900: #17181c;
+  --n-50: #f6f5f1;
+  --n-100: #eeece6;
+  --n-200: #e4e2dc;
+  --n-300: #cfccc4;
+  --n-400: #a3a19b;
+  --n-500: #63666e;
+  --n-600: #4f525a;
+  --n-700: #383b43;
+  --n-800: #262930;
+  --n-900: #1a1d24; /* ink */
   --n-1000: #000000;
-  --accent-500: #6b3fc4; /* postmark violet */
-  --accent-600: #5e34b1;
+  --rust-500: #b3431b; /* franking ink */
+  --rust-600: #963714;
+  --manila-100: #f3ead8;
+  --manila-300: #dccba8;
 
-  /* role tokens: light */
+  /* role tokens (light only, D-L1) */
   --surface: var(--n-0);
   --surface-raised: var(--n-50);
   --surface-sunken: var(--n-100);
   --surface-inverse: var(--n-900);
+  --surface-receipt: var(--manila-100);
+  --surface-inverse-raised: var(--n-800);
   --text: var(--n-900);
   --text-subtle: var(--n-600);
   --text-muted: var(--n-500);
   --text-inverse: var(--n-0);
+  --text-inverse-subtle: #b9bcc4;
   --border: var(--n-200);
-  --border-strong: #8a8d96;
-  --action: var(--accent-500);
-  --action-hover: var(--accent-600);
+  --border-strong: #8b8a85;
+  --border-receipt: var(--manila-300);
+  --border-inverse: #3a3e48;
+  --action: var(--n-900);
+  --action-hover: var(--n-700);
   --action-text: #ffffff;
-  --action-surface: #f1ecfb;
-  --focus: var(--n-900);
-  --success: #1f7a3a;
-  --success-surface: #e8f5ec;
-  --warning: #8a5a00;
-  --warning-surface: #fdf3dc;
-  --danger: #b3261e;
-  --danger-surface: #fcebea;
-  --code-bg: #17181c;
-  --code-text: #e9eaee;
-  --code-accent: #b49af0;
+  --action-surface: var(--n-100);
+  --accent: var(--rust-500);
+  --accent-hover: var(--rust-600);
+  --accent-surface: #f8e9e2;
+  --focus: var(--rust-500);
+  --success: #1e6b3a;
+  --success-surface: #e6f2ea;
+  --warning: #7a5200;
+  --warning-surface: #fbf1d9;
+  --danger: #a8261c;
+  --danger-surface: #fbeae8;
+  --code-bg: #1a1d24;
+  --code-text: #e8e6e0;
+  --code-accent: #f0a27f;
   --code-muted: #9a9da6;
-  --hero-from: #000000;
-  --hero-to: #666666;
-  --shadow-color: 0 0% 0%;
+  --shadow-color: 222 16% 12%;
   color-scheme: light;
 }
 
 @theme inline {
+  --font-display: var(--font-display-family);
   --font-sans: var(--font-sans-family);
   --font-mono: var(--font-mono-family);
 
@@ -79,6 +89,14 @@
   --color-action-hover: var(--action-hover);
   --color-action-text: var(--action-text);
   --color-action-surface: var(--action-surface);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-surface: var(--accent-surface);
+  --color-surface-receipt: var(--surface-receipt);
+  --color-surface-inverse-raised: var(--surface-inverse-raised);
+  --color-border-receipt: var(--border-receipt);
+  --color-border-inverse: var(--border-inverse);
+  --color-text-inverse-subtle: var(--text-inverse-subtle);
   --color-code-bg: var(--code-bg);
   --color-code-text: var(--code-text);
   --color-code-accent: var(--code-accent);
@@ -110,18 +128,28 @@
   --spacing-20: 80px;
   --spacing-24: 96px;
 
+  /* Radius personality: sharp (docs/design-brief.md §4). 2px controls and chips, 4px panels, nothing larger. */
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius: 4px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 4px;
+  --radius-3xl: 4px;
+
   --ease-out-kit: cubic-bezier(0.22, 1, 0.36, 1);
   --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   --default-transition-duration: 300ms;
 }
 
 /* ---- Named type styles (playbook §5). Use these, never loose size+weight pairs. ---- */
-@utility heading-1 { font-size: 3.75rem; line-height: 1; font-weight: 600; letter-spacing: -0.02em; text-wrap: balance; }
-@utility heading-2 { font-size: 3rem; line-height: 1; font-weight: 600; letter-spacing: -0.02em; text-wrap: balance; }
-@utility heading-3 { font-size: 2.25rem; line-height: 2.5rem; font-weight: 600; letter-spacing: -0.015em; text-wrap: balance; }
-@utility heading-4 { font-size: 1.875rem; line-height: 2.25rem; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
-@utility heading-5 { font-size: 1.5rem; line-height: 2rem; font-weight: 600; text-wrap: balance; }
-@utility heading-6 { font-size: 1.25rem; line-height: 1.75rem; font-weight: 600; text-wrap: balance; }
+@utility heading-1 { font-family: var(--font-display-family); font-size: 3.75rem; line-height: 1; font-weight: 500; letter-spacing: -0.025em; text-wrap: balance; }
+@utility heading-2 { font-family: var(--font-display-family); font-size: 3rem; line-height: 1; font-weight: 500; letter-spacing: -0.025em; text-wrap: balance; }
+@utility heading-3 { font-family: var(--font-display-family); font-size: 2.25rem; line-height: 2.5rem; font-weight: 500; letter-spacing: -0.015em; text-wrap: balance; }
+@utility heading-4 { font-family: var(--font-display-family); font-size: 1.875rem; line-height: 2.25rem; font-weight: 500; letter-spacing: -0.01em; text-wrap: balance; }
+@utility heading-5 { font-family: var(--font-display-family); font-size: 1.5rem; line-height: 2rem; font-weight: 500; text-wrap: balance; }
+@utility heading-6 { font-family: var(--font-display-family); font-size: 1.25rem; line-height: 1.75rem; font-weight: 500; text-wrap: balance; }
 @utility title-1 { font-size: 1.25rem; line-height: 1.75rem; font-weight: 500; }
 @utility title-2 { font-size: 1.125rem; line-height: 1.75rem; font-weight: 500; }
 @utility title-3 { font-size: 1rem; line-height: 1.5rem; font-weight: 500; }
@@ -141,15 +169,14 @@
 @utility caption-2 { font-size: 0.875rem; line-height: 1.25rem; font-weight: 400; }
 @utility caption-3 { font-size: 0.75rem; line-height: 1rem; font-weight: 600; }
 @utility caption-4 { font-size: 0.75rem; line-height: 1rem; font-weight: 500; }
+@utility label-mono { font-family: var(--font-mono-family); font-size: 0.75rem; line-height: 1rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
 @utility caption-5 { font-size: 0.75rem; line-height: 1rem; font-weight: 400; }
 
-/* The only gradient allowed (playbook §6): hero heading text, left to right. */
-@utility hero-gradient-text {
-  background-image: linear-gradient(to right, var(--hero-from), var(--hero-to));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+/* The one shadow: a 1px offset ink edge, like a card laid on a desk. Product frames and dialogs only. */
+@utility shadow-stamp { box-shadow: 4px 4px 0 0 hsl(var(--shadow-color) / 0.08), 0 1px 2px 0 hsl(var(--shadow-color) / 0.06); }
+
+/* Tear line on receipts: a dashed rule element (not a single-sided card border). */
+@utility tear-line { height: 0; border-top: 1px dashed var(--border-receipt); }
 
 @utility focus-ring {
   outline: 2px solid var(--focus);
@@ -162,7 +189,7 @@
     background: var(--surface);
     color: var(--text);
     font-family: var(--font-sans-family);
-    font-feature-settings: "ss01", "cv11";
+    font-feature-settings: "ss01";
     -webkit-font-smoothing: antialiased;
   }
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
@@ -173,11 +200,12 @@
 /* Scroll reveal (rise 32px + fade, once). Reduced motion: opacity only. */
 .kit-reveal { opacity: 0; transform: translateY(32px); transition: opacity 700ms var(--ease-out-kit), transform 700ms var(--ease-out-kit); }
 .kit-reveal[data-visible="true"] { opacity: 1; transform: none; }
-.kit-word { opacity: 0.3; transition: opacity 500ms var(--ease-out-kit); }
-.kit-word[data-on="true"] { opacity: 1; }
+/* Unlit words stay AA readable (text-muted is 5.9:1 on white); lit words turn ink. */
+.kit-word { color: var(--text-muted); transition: color 500ms var(--ease-out-kit); }
+.kit-word[data-on="true"] { color: var(--text); }
 @media (prefers-reduced-motion: reduce) {
   .kit-reveal { transform: none; transition: opacity 300ms var(--ease-out-kit); }
-  .kit-word { opacity: 1; transition: none; }
+  .kit-word { color: var(--text); transition: none; }
   *, *::before, *::after { animation-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 

@@ -3,13 +3,13 @@ import { cn } from "./cn";
 
 /** Skeleton shaped like the real layout (no circular spinners for content). */
 export function Skeleton({ className }: { className?: string }) {
-  return <div aria-hidden className={cn("rounded-md bg-surface-sunken motion-safe:animate-pulse", className)} />;
+  return <div aria-hidden className={cn("rounded-sm bg-surface-sunken motion-safe:animate-pulse", className)} />;
 }
 
 /** Composed getting-started view that teaches the next action. */
 export function EmptyState({ title, body, action, visual }: { title: string; body: ReactNode; action?: ReactNode; visual?: ReactNode }) {
   return (
-    <div className="flex flex-col items-start gap-4 rounded-lg border border-border bg-surface-raised p-8">
+    <div className="flex flex-col items-start gap-4 rounded border border-dashed border-border-strong bg-surface p-6 md:p-8">
       {visual}
       <div className="flex max-w-xl flex-col gap-2">
         <h3 className="heading-6 text-text">{title}</h3>

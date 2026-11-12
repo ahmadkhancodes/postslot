@@ -1,48 +1,40 @@
 import type { ReactNode } from "react";
 import { Section } from "@/components/ui/layout";
-import { cn } from "@/components/ui/cn";
 
 export type FeatureSpan = 2 | 3 | 4 | 6;
 export interface Feature {
   title: string;
   body: ReactNode;
-  /** Columns out of 6 on desktop. Default 2. Mix spans so rows are never three equal cards. */
+  /** Kept for callers; the spec sheet lays rows out in one ruled list. */
   span?: FeatureSpan;
   visual?: ReactNode;
 }
 
-const spans: Record<FeatureSpan, string> = {
-  2: "md:col-span-2",
-  3: "md:col-span-3",
-  4: "md:col-span-4",
-  6: "md:col-span-6",
-};
-
-/** Bento grid on a 6-column track. Items with a visual put it above the copy. */
+/**
+ * Spec sheet, not a card grid: a ruled list of numbered entries, each with its product fragment beside it.
+ * Title column on the left at desktop (4 of 12), entries on the right (8 of 12).
+ */
 export function Features({ title, intro, items }: { title: ReactNode; intro?: ReactNode; items: Feature[] }) {
   return (
-    <Section tone="raised" labelledBy="features-title">
-      <div className="flex max-w-2xl flex-col gap-4">
-        <h2 id="features-title" className="heading-4 md:heading-2 text-text">{title}</h2>
-        {intro ? <p className="body-3 text-text-subtle">{intro}</p> : null}
+    <Section tone="raised" space="md" labelledBy="features-title">
+      <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+        <div className="flex flex-col gap-4 lg:col-span-4">
+          <h2 id="features-title" className="heading-4 text-text md:heading-3">{title}</h2>
+          {intro ? <p className="body-3 text-text-subtle">{intro}</p> : null}
+        </div>
+        <ol className="flex flex-col border-t border-text lg:col-span-8">
+          {items.map((f, i) => (
+            <li key={f.title} className="grid min-w-0 gap-4 border-b border-border py-6 md:grid-cols-12 md:gap-6">
+              <span aria-hidden className="label-mono pt-1 text-accent md:col-span-1">{String(i + 1).padStart(2, "0")}</span>
+              <div className={f.visual ? "flex flex-col gap-2 md:col-span-5" : "flex flex-col gap-2 md:col-span-11"}>
+                <h3 className="heading-6 text-text">{f.title}</h3>
+                <p className="body-6 text-text-subtle">{f.body}</p>
+              </div>
+              {f.visual ? <div className="min-w-0 rounded border border-border bg-surface md:col-span-6">{f.visual}</div> : null}
+            </li>
+          ))}
+        </ol>
       </div>
-      <ul className="mt-12 grid gap-4 md:mt-16 md:grid-cols-6">
-        {items.map((f) => (
-          <li
-            key={f.title}
-            className={cn(
-              "flex min-w-0 flex-col justify-between gap-6 rounded-lg border border-border bg-surface p-6 transition-colors duration-300 ease-out-kit hover:border-border-strong md:p-8",
-              spans[f.span ?? 2],
-            )}
-          >
-            {f.visual ? <div className="min-w-0 overflow-hidden rounded-md border border-border bg-surface-raised">{f.visual}</div> : null}
-            <div className="flex flex-col gap-2">
-              <h3 className="heading-6 text-text">{f.title}</h3>
-              <p className="body-3 text-text-subtle">{f.body}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
     </Section>
   );
 }

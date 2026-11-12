@@ -11,13 +11,13 @@ const TABS = [
 /** Section links shared by the form pages. */
 export function FormTabs({ id, active }: { id: string; active: (typeof TABS)[number]["key"] }) {
   return (
-    <nav aria-label="Form sections" className="-mx-1 mb-6 flex gap-1 overflow-x-auto px-1">
+    <nav aria-label="Form sections" className="mb-6 flex gap-2 overflow-x-auto border-b border-border">
       {TABS.map((t) => (
         <Link
           key={t.key}
           href={t.href(id)}
           aria-current={t.key === active ? "page" : undefined}
-          className={cn("flex min-h-11 items-center whitespace-nowrap rounded-md px-3 body-5 transition-colors duration-300 focus-visible:focus-ring", t.key === active ? "bg-surface-sunken text-text" : "text-text-subtle hover:bg-surface-raised hover:text-text")}
+          className={cn("relative flex min-h-11 min-w-11 items-center justify-center whitespace-nowrap px-2 body-5 transition-colors duration-300 focus-visible:focus-ring", t.key === active ? "text-text after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-accent" : "text-text-subtle hover:text-text")}
         >
           {t.label}
         </Link>

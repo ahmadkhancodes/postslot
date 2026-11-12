@@ -71,7 +71,6 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
         actions={
           <>
             <a href={`/api/submissions/export${exportQs ? `?${exportQs}` : ""}`} className={buttonClass("secondary", "md")}><DownloadSimple size={20} aria-hidden /> Export CSV</a>
-            <Link href="/app/forms" className={buttonClass("primary", "md")}>Forms</Link>
           </>
         }
       />
@@ -89,13 +88,13 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
         {usage[0] ? <div className="max-w-md"><Meter state={usage[0]} /></div> : null}
       </div>
 
-      <form method="get" action="/app" role="search" className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <form method="get" action="/app" role="search" className="grid grid-cols-[1fr_auto] gap-3 sm:flex sm:items-center">
         {filter !== "all" ? <input type="hidden" name="filter" value={filter} /> : null}
-        <div className="relative min-w-0 flex-1">
+        <div className="relative col-span-2 min-w-0 flex-1">
           <MagnifyingGlass size={18} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <Input name="q" defaultValue={q} placeholder="Search words in names, emails and messages" aria-label="Search submissions" className="pl-10" />
         </div>
-        <div className="sm:w-56 sm:shrink-0">
+        <div className="sm:w-2xs sm:shrink-0">
           <Select name="form" defaultValue={formId ?? ""} aria-label="Form">
             <option value="">All forms</option>
             {forms.map((f) => <option key={f._id} value={f._id}>{f.name}</option>)}
@@ -103,38 +102,39 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
         </div>
         <button type="submit" className={buttonClass("secondary", "md")}>Search</button>
       </form>
-      <p className="-mt-3 caption-2 text-text-subtle">Search matches whole words, so “jam” will not find “jamie”. Use several words to match any of them, “quotes” for an exact phrase and a leading minus to leave a word out.</p>
+      <p className="-mt-3 caption-2 text-text-subtle">Search matches whole words, so “jam” will not find “jamie”. <span className="max-sm:hidden">Use several words to match any of them, “quotes” for an exact phrase and a leading minus to leave a word out.</span></p>
 
-      <nav aria-label="Filter" className="-mx-1 flex gap-1 overflow-x-auto px-1">
+      <nav aria-label="Filter" className="flex gap-2 overflow-x-auto border-b border-border">
         {INBOX_FILTERS.map((f) => (
           <Link
             key={f}
             href={href({ filter: f === "all" ? undefined : f, id: undefined })}
             aria-current={f === filter ? "page" : undefined}
-            className={cn("inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md px-3 body-5 transition-colors duration-300 focus-visible:focus-ring", f === filter ? "bg-surface-sunken text-text" : "text-text-subtle hover:bg-surface-raised hover:text-text")}
+            className={cn("relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 whitespace-nowrap px-2 body-5 transition-colors duration-300 focus-visible:focus-ring", f === filter ? "text-text after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-accent" : "text-text-subtle hover:text-text")}
           >
             {FILTER_LABEL[f]} <span className="font-mono text-xs text-text-muted">{counts[f]}</span>
           </Link>
         ))}
       </nav>
 
-      <div className="grid gap-6 lg:grid-cols-5">
-        <section aria-label="Submissions" className={cn("flex flex-col lg:col-span-2", detail ? "hidden lg:flex" : "")}>
+      <div className="grid gap-6 lg:grid-cols-12">
+        <section aria-label="Submissions" className={cn("flex flex-col lg:col-span-5", detail ? "hidden lg:flex" : "")}>
           {rows.length ? (
-            <ul className="flex flex-col overflow-hidden rounded-lg border border-border bg-surface">
+            <ul className="flex flex-col overflow-hidden rounded border border-border bg-surface">
               {rows.map((s) => (
                 <li key={s._id} className="border-b border-border last:border-b-0">
                   <Link
                     href={href({ id: s._id })}
                     aria-current={s._id === selected ? "true" : undefined}
-                    className={cn("flex min-h-11 flex-col gap-1 p-4 transition-colors duration-300 hover:bg-surface-raised focus-visible:focus-ring", s._id === selected && "bg-surface-raised")}
+                    className={cn("relative flex min-h-11 flex-col gap-1 px-4 py-3 transition-colors duration-300 hover:bg-surface-raised focus-visible:focus-ring", s._id === selected && "bg-accent-surface hover:bg-accent-surface")}
                   >
+                    {s._id === selected ? <span aria-hidden className="absolute inset-y-0 left-0 w-0.5 bg-accent" /> : null}
                     <span className="flex items-baseline justify-between gap-3">
                       <span className="title-4 truncate text-text">{senderOf(s)}</span>
-                      <span className="shrink-0 font-mono text-xs text-text-muted">{shortWhen(s.receivedAt)}</span>
+                      <span className="shrink-0 font-mono text-xs tabular-nums text-text-muted">{shortWhen(s.receivedAt)}</span>
                     </span>
-                    <span className="caption-2 line-clamp-2 text-text-subtle">{previewOf(s)}</span>
-                    <span className="flex flex-wrap items-center gap-2">
+                    <span className="caption-2 line-clamp-1 text-text-subtle">{previewOf(s)}</span>
+                    <span className="flex flex-wrap items-center gap-3">
                       <StatusChip status={chipFor(s)} />
                       {s.isTest ? <Badge tone="info">Test submission</Badge> : null}
                     </span>
@@ -150,14 +150,19 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
             />
           )}
         </section>
-        <div className={cn("flex flex-col gap-3 lg:col-span-3", detail ? "" : "hidden lg:flex")}>
+        <div className={cn("flex flex-col gap-3 lg:col-span-7", detail ? "" : "hidden lg:flex")}>
           {detail ? (
             <>
               <Link href={href({ id: undefined })} className={cn(buttonClass("tertiary", "md", "self-start"), "lg:hidden")}>Back to inbox</Link>
               <SubmissionDetail d={detail} canWrite={canWrite} />
             </>
           ) : (
-            <div className="hidden rounded-lg border border-dashed border-border-strong p-8 body-6 text-text-subtle lg:block">Select a submission to see its message, spam signals and delivery receipt.</div>
+            <div className="hidden flex-col gap-4 rounded border border-dashed border-border-receipt bg-surface p-8 lg:flex">
+              <p className="label-mono text-text-muted">Delivery receipt</p>
+              <p className="body-6 text-text-subtle">Select a submission to see its message, spam signals and delivery receipt.</p>
+              <div aria-hidden className="tear-line" />
+              <p aria-hidden className="font-mono text-xs leading-6 text-text-muted">14:02:03 Received<br />14:02:04 Sorted<br />14:02:04 Dispatched<br />14:02:07 Accepted</p>
+            </div>
           )}
         </div>
       </div>

@@ -79,9 +79,9 @@ export function FormWebhooksClient({ formId, canManage, allowed, events, initial
           {canManage ? (
             <form className="flex flex-col gap-3" onSubmit={create}>
               <Field label="Endpoint URL" htmlFor="wh-url" error={err}><Input id="wh-url" type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://api.yoursite.com/postslot" required /></Field>
-              <fieldset className="flex flex-wrap gap-x-5 gap-y-1"><legend className="title-4 pb-1 text-text">Events</legend>
+              <fieldset className="flex flex-wrap gap-x-6 gap-y-1"><legend className="title-4 pb-1 text-text">Events</legend>
                 {events.map((ev) => (
-                  <label key={ev} className="flex min-h-11 items-center gap-2 body-6 text-text"><input type="checkbox" checked={picked.includes(ev)} onChange={() => setPicked((p) => (p.includes(ev) ? p.filter((x) => x !== ev) : [...p, ev]))} className="size-5 accent-[var(--action)]" />{ev}</label>
+                  <label key={ev} className="flex min-h-11 items-center gap-2 body-6 text-text"><input type="checkbox" checked={picked.includes(ev)} onChange={() => setPicked((p) => (p.includes(ev) ? p.filter((x) => x !== ev) : [...p, ev]))} className="size-4 accent-[var(--action)]" />{ev}</label>
                 ))}
               </fieldset>
               <div><Button type="submit" loading={busy === "create"} disabled={!picked.length}>Add endpoint</Button></div>

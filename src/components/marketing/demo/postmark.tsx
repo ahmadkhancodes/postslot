@@ -4,7 +4,7 @@ import { useId } from "react";
 export function Postmark({ label = "DELIVERED", time, date, className }: { label?: string; time: string; date: string; className?: string }) {
   const pathId = useId();
   return (
-    <svg viewBox="0 0 120 120" role="img" aria-label={`Postmark: ${label.toLowerCase()} ${time}, ${date}`} className={`kit-postmark font-mono text-action ${className ?? ""}`}>
+    <svg viewBox="0 0 120 120" role="img" aria-label={`Postmark: ${label.toLowerCase()} ${time}, ${date}`} className={`kit-postmark font-mono text-accent ${className ?? ""}`}>
       <defs><path id={pathId} d="M60 60m-43 0a43 43 0 1 1 86 0" /></defs>
       <circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" strokeWidth="2" />
       <circle cx="60" cy="60" r="33" fill="none" stroke="currentColor" strokeWidth="1.2" />

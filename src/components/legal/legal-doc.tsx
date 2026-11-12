@@ -85,7 +85,7 @@ export function LegalDoc({ doc }: { doc: LegalDocData }) {
           <ol className="body-6 flex list-decimal flex-col gap-1 pl-6 text-text-subtle">
             {doc.sections.map((s) => (
               <li key={s.id}>
-                <a href={`#${s.id}`} className="inline-flex min-h-11 items-center text-action underline underline-offset-4 hover:text-action-hover focus-visible:focus-ring sm:min-h-8">
+                <a href={`#${s.id}`} className="inline-flex min-h-11 items-center text-accent underline underline-offset-4 hover:text-accent-hover focus-visible:focus-ring sm:min-h-8">
                   {s.title}
                 </a>
               </li>

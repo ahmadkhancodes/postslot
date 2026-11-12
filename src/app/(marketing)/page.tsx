@@ -4,7 +4,7 @@ import { ogImageUrl, twitterImageUrl } from "@/lib/seo";
 import { Section } from "@/components/ui/layout";
 import { ButtonLink } from "@/components/ui/button";
 import {
-  CompareTable, Faq, Features, FinalCta, Hero, HowItWorks, InboxExplainer, PricingTable, Problem, StatStrip, TaglineReveal,
+  CompareTable, Faq, Features, FinalCta, Hero, HowItWorks, InboxExplainer, PricingTable, Problem, TaglineReveal,
   type FaqItem, type Feature, type ProblemItem, type Step,
 } from "@/components/marketing";
 import { InboxPreview } from "@/components/marketing/demo/inbox-preview";
@@ -44,9 +44,9 @@ const steps: Step[] = [
     title: "Press Send test",
     body: "The field linter checks your markup before a visitor does, for example an input with no name attribute.",
     visual: (
-      <div className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-6">
+      <div className="flex flex-col gap-4 rounded border border-border bg-surface p-6 shadow-stamp">
         <div className="flex flex-wrap items-center gap-4">
-          <ButtonLink href="/sign-in" size="md">Send test submission</ButtonLink>
+          <ButtonLink href="/sign-in" size="md" variant="secondary">Send test submission</ButtonLink>
         </div>
         <p role="note" className="body-6 rounded-sm border border-warning bg-warning-surface p-3 text-text">
           Input <span className="font-mono text-xs">email</span> has no name attribute, so its value will not be sent.
@@ -59,7 +59,7 @@ const steps: Step[] = [
     title: "Watch the stamp land",
     body: "The receipt fills in as the message is received, sorted, dispatched and accepted. Your first stamp appears in a few seconds.",
     visual: (
-      <div className="flex items-center justify-between gap-6 rounded-lg border border-border bg-surface p-6">
+      <div className="flex items-center justify-between gap-6 rounded border border-border-receipt bg-surface-receipt p-6 shadow-stamp">
         <Timeline
           steps={[
             { name: "Received", time: "14:02:03" },
@@ -151,31 +151,30 @@ const faq: FaqItem[] = [
 ];
 
 export default function HomePage() {
-  const stats = [
-    { value: String(freePlan.limits.submissions), label: "submissions a month on Free, spam not counted" },
-    { value: "90 days", label: "of history on the Free plan" },
-    { value: "0 dropped", label: "over the limit, submissions are held, not rejected" },
-    { value: "1 line", label: "to install: change the form action" },
+  const facts = [
+    { term: `${freePlan.limits.submissions} a month free`, detail: "Spam never counts toward it" },
+    { term: "Held, not dropped", detail: "Over the limit, mail waits for you" },
+    { term: "90 days of history", detail: "On the Free plan" },
+    { term: "1 line to install", detail: "Change the form action" },
   ];
   return (
     <>
       <Hero
-        title={<>Every form submission delivered<br />with the receipt to prove it</>}
+        title={<>Every form submission, delivered with a receipt</>}
         subtitle="Point any HTML form at Postslot by BufferSol. We filter the spam, deliver to your inbox and stamp every message with its delivery status. Free for 250 submissions a month."
-        primaryCta={{ href: "/sign-in", label: "Create a form" }}
+        primaryCta={{ href: "/sign-in", label: "Create a free form" }}
         secondaryCta={{ href: "/docs", label: "Read the docs" }}
+        facts={facts}
         proof={
           <>
-            <p>Free plan, no card. Spam never counts toward your limit.</p>
-            <p className="mt-2">
+            <p>
               <span className="text-text">Pro is {dollars(proYear)} a year for 10,000 submissions a month.</span> Web3Forms Pro is $149 a year for the same 10,000 (checked 3 Nov 2026, not affiliated).{" "}
-              <Link href="/compare/web3forms" className="text-action underline underline-offset-4 hover:text-action-hover focus-visible:focus-ring">See the comparison</Link>
+              <Link href="/compare/web3forms" className="text-accent underline underline-offset-4 hover:text-accent-hover focus-visible:focus-ring">See the comparison</Link>
             </p>
           </>
         }
         visual={<InboxPreview />}
       />
-      <StatStrip stats={stats} />
       <InboxExplainer />
       <Problem
         title="Your client says the form never works. You cannot prove otherwise."
@@ -185,7 +184,7 @@ export default function HomePage() {
       <Features title="What the receipt covers" items={features} />
       <HowItWorks title="Three steps from form to first stamp" steps={steps} />
       <TaglineReveal text="A form that sends is not enough. You need to know it arrived. Postslot stamps every submission, so nothing disappears quietly." />
-      <Section tone="raised" labelledBy="compare-title">
+      <Section tone="raised" space="md" labelledBy="compare-title">
         <div className="flex max-w-2xl flex-col gap-4">
           <h2 id="compare-title" className="heading-4 md:heading-2 text-text">Same endpoint idea, half the price, plus a receipt</h2>
         </div>
@@ -194,7 +193,7 @@ export default function HomePage() {
         </div>
         <p className="caption-2 mt-4 max-w-2xl text-text-subtle">
           Checked 3 Nov 2026 from public pricing pages. Not affiliated with Web3Forms or Formspree. Cells labelled Unverified are facts we have not confirmed yet.{" "}
-          <Link href="/compare/web3forms" className="text-action underline underline-offset-4 hover:text-action-hover focus-visible:focus-ring">Full Web3Forms comparison</Link>
+          <Link href="/compare/web3forms" className="text-accent underline underline-offset-4 hover:text-accent-hover focus-visible:focus-ring">Full Web3Forms comparison</Link>
         </p>
       </Section>
       <Section labelledBy="pricing-title">
@@ -204,16 +203,16 @@ export default function HomePage() {
         </p>
       </Section>
       <Faq items={faq} />
-      <Section tone="raised" labelledBy="risk-title">
-        <div className="flex flex-col gap-2">
-          <h2 id="risk-title" className="heading-5 text-text">Start on the Free plan</h2>
-          <p className="body-3 text-text-subtle">No card, no trial clock. Cancel anytime, export everything.</p>
+      <Section space="sm" labelledBy="risk-title">
+        <div className="grid gap-4 border-y border-text py-8 md:grid-cols-12 md:items-baseline">
+          <h2 id="risk-title" className="heading-5 text-text md:col-span-4">Start on the Free plan</h2>
+          <p className="body-3 text-text-subtle md:col-span-8">No card and no trial clock. Cancel anytime and export everything as CSV or JSON.</p>
         </div>
       </Section>
       <FinalCta
         title="Send your first test and watch the stamp land"
         cta={{ href: "/sign-in", label: "Create a form" }}
-        note={<Link href="/docs" className="underline underline-offset-4 focus-visible:focus-ring">Read the docs</Link>}
+        note={<Link href="/docs" className="inline-flex min-h-11 items-center button-md text-text underline decoration-border-strong underline-offset-4 transition-colors duration-300 hover:text-accent hover:decoration-accent focus-visible:focus-ring">Read the docs</Link>}
       />
     </>
   );

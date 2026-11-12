@@ -42,7 +42,7 @@ function SnippetPicker({ endpoint, snippets }: { endpoint: string; snippets: Sni
           ))}
         </div>
         <div role="tabpanel" className="flex flex-col gap-2">
-          <pre className="max-h-96 overflow-auto rounded-md bg-code-bg p-4 font-mono text-xs leading-relaxed text-code-text"><code>{s.code}</code></pre>
+          <pre className="max-h-dvh overflow-auto rounded-md bg-code-bg p-4 font-mono text-xs leading-relaxed text-code-text"><code>{s.code}</code></pre>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="caption-2 text-text-subtle">{s.note ?? "Field names are up to you. email becomes the Reply-To address."}</p>
             <CopyButton value={s.code} label="Copy snippet" />
@@ -107,7 +107,7 @@ function Settings({ form, canWrite, origin }: { form: FormView; canWrite: boolea
   return (
     <Panel title="Settings" description="Where visitors land, which sites may post, and how spam is handled.">
       <form
-        className="flex flex-col gap-5"
+        className="flex flex-col gap-6"
         onSubmit={async (e) => {
           e.preventDefault();
           setBusy(true);
@@ -124,14 +124,14 @@ function Settings({ form, canWrite, origin }: { form: FormView; canWrite: boolea
           else setMsg({ tone: "err", text: r.code === "invalid_input" ? "Check the success URL: it must start with https://." : r.message });
         }}
       >
-        <fieldset disabled={!canWrite} className="flex flex-col gap-5">
+        <fieldset disabled={!canWrite} className="flex flex-col gap-6">
           <Field label="Form name" htmlFor="f-name"><Input id="f-name" value={v.name} onChange={(e) => setV({ ...v, name: e.target.value })} maxLength={80} required /></Field>
           <Field label="Success URL" htmlFor="f-redirect" hint="Visitors who post an HTML form land here. Leave empty for the default thank-you page."><Input id="f-redirect" type="url" value={v.redirectUrl} onChange={(e) => setV({ ...v, redirectUrl: e.target.value })} placeholder="https://yoursite.com/thanks" /></Field>
           <Field label="Email subject" htmlFor="f-subject" hint="Use {{field}} to insert a field, for example New message from {{name}}."><Input id="f-subject" value={v.subject} onChange={(e) => setV({ ...v, subject: e.target.value })} maxLength={200} /></Field>
           <Field label="Allowed sites" htmlFor="f-origins" hint={<>One per line, for example <code>yoursite.com</code> or <code>*.yoursite.com</code>. Empty allows any site. {form.blockedCount ? `${form.blockedCount} posts blocked so far.` : ""}</>}><Textarea id="f-origins" value={v.origins} onChange={(e) => setV({ ...v, origins: e.target.value })} rows={3} /></Field>
           <Field label="Spam filtering" htmlFor="f-spam" hint="Strict quarantines on weaker signals. Off still applies the honeypot and rate limits."><Select id="f-spam" value={v.spam} onChange={(e) => setV({ ...v, spam: e.target.value })}><option value="standard">Standard</option><option value="strict">Strict</option><option value="off">Off</option></Select></Field>
-          <label className="flex min-h-11 items-start gap-3 body-6 text-text"><input type="checkbox" checked={v.altcha} onChange={(e) => setV({ ...v, altcha: e.target.checked })} className="mt-1 size-5 accent-[var(--action)]" /><span>Require the ALTCHA proof-of-work check<span className="block caption-2 text-text-subtle">Turn this on only after adding the ALTCHA widget to your form with challengeurl set to {`${origin}/api/altcha`}. Without the widget every submission is rejected.</span></span></label>
-          <label className="flex min-h-11 items-start gap-3 body-6 text-text"><input type="checkbox" checked={v.paused} onChange={(e) => setV({ ...v, paused: e.target.checked })} className="mt-1 size-5 accent-[var(--action)]" /><span>Pause this form<span className="block caption-2 text-text-subtle">Posts get a clear 403 instead of being stored.</span></span></label>
+          <label className="flex min-h-11 items-start gap-3 body-6 text-text"><input type="checkbox" checked={v.altcha} onChange={(e) => setV({ ...v, altcha: e.target.checked })} className="mt-1 size-4 accent-[var(--action)]" /><span>Require the ALTCHA proof-of-work check<span className="block caption-2 text-text-subtle">Turn this on only after adding the ALTCHA widget to your form with challengeurl set to {`${origin}/api/altcha`}. Without the widget every submission is rejected.</span></span></label>
+          <label className="flex min-h-11 items-start gap-3 body-6 text-text"><input type="checkbox" checked={v.paused} onChange={(e) => setV({ ...v, paused: e.target.checked })} className="mt-1 size-4 accent-[var(--action)]" /><span>Pause this form<span className="block caption-2 text-text-subtle">Posts get a clear 403 instead of being stored.</span></span></label>
         </fieldset>
         {canWrite ? <div className="flex items-center gap-3"><Button type="submit" loading={busy}>Save settings</Button>{msg ? <p role={msg.tone === "err" ? "alert" : "status"} className={`caption-2 ${msg.tone === "err" ? "text-danger" : "text-text-subtle"}`}>{msg.text}</p> : null}</div> : null}
       </form>

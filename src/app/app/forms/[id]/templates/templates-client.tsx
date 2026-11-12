@@ -41,11 +41,11 @@ export function TemplatesClient({ formId, canWrite, initial }: { formId: string;
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
       <Panel title="Template" description="Pick the layout and the subject line. The preview on the right is what lands in your inbox.">
-        <form className="flex flex-col gap-5" onSubmit={save}>
-          <fieldset disabled={!canWrite} className="flex flex-col gap-5">
+        <form className="flex flex-col gap-6" onSubmit={save}>
+          <fieldset disabled={!canWrite} className="flex flex-col gap-6">
             <div role="radiogroup" aria-label="Layout" className="flex flex-col gap-2">
               {TEMPLATES.map((t) => (
-                <label key={t.id} className={cn("flex min-h-11 cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors duration-300 focus-within:focus-ring", template === t.id ? "border-action bg-surface-raised" : "border-border hover:bg-surface-raised")}>
+                <label key={t.id} className={cn("flex min-h-11 cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors duration-300 focus-within:focus-ring", template === t.id ? "border-accent bg-surface-raised" : "border-border hover:bg-surface-raised")}>
                   <input type="radio" name="template" value={t.id} checked={template === t.id} onChange={() => setTemplate(t.id)} className="mt-1 size-4 accent-[var(--action)]" />
                   <span><span className="block body-5 text-text">{t.label}</span><span className="block caption-2 text-text-subtle">{t.hint}</span></span>
                 </label>

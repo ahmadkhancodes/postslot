@@ -45,16 +45,16 @@ export function OrgSwitcher({ activeId, activeName }: { activeId: string; active
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setOpen((o) => !o)}
-        className="flex min-h-11 w-full items-center justify-between gap-2 rounded-md border border-border bg-surface px-3 py-2 text-left transition-colors duration-300 hover:bg-surface-raised focus-visible:focus-ring"
+        className="flex min-h-11 w-full items-center justify-between gap-2 rounded-sm border border-border-inverse bg-surface-inverse px-3 py-2 text-left transition-colors duration-300 hover:bg-surface-inverse-raised focus-visible:focus-ring"
       >
         <span className="flex min-w-0 flex-col">
-          <span className="caption-4 text-text-muted">Organization</span>
-          <span className="title-4 truncate text-text">{activeName}</span>
+          <span className="label-mono text-text-inverse-subtle">Organization</span>
+          <span className="title-4 truncate text-text-inverse">{activeName}</span>
         </span>
-        <CaretUpDown size={16} weight="regular" aria-hidden className="shrink-0 text-text-subtle" />
+        <CaretUpDown size={16} weight="regular" aria-hidden className="shrink-0 text-text-inverse-subtle" />
       </button>
       {open ? (
-        <div id={id} role="listbox" aria-label="Organizations" className="absolute left-0 top-full z-30 mt-1 flex w-full flex-col gap-1 rounded-md border border-border bg-surface p-1">
+        <div id={id} role="listbox" aria-label="Organizations" className="absolute left-0 top-full z-30 mt-1 flex w-full flex-col gap-1 rounded-sm border border-border bg-surface p-1 shadow-stamp">
           {isPending ? <Skeleton className="h-8 w-full" /> : null}
           {(orgs ?? []).map((o) => (
             <button
