@@ -34,7 +34,7 @@ export function inboxQuery(orgId: string, o: ListOpts): DocFilter {
 }
 
 export async function listSubmissions(db: Db, orgId: string, o: ListOpts = {}): Promise<Submission[]> {
-  return db.docs<Submission>("submissions").find(inboxQuery(orgId, o), { sort: { receivedAt: -1 }, limit: Math.min(o.limit ?? 50, 5000) });
+  return db.docs<Submission>("submissions").find(inboxQuery(orgId, o), { sort: { receivedAt: -1 }, limit: Math.min(o.limit ?? 50, 50_000) });
 }
 
 export async function filterCounts(db: Db, orgId: string, formId?: string): Promise<Record<InboxFilter, number>> {

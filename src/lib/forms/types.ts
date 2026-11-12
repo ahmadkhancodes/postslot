@@ -91,6 +91,10 @@ export interface Submission {
   holdReason?: HoldReason;
   /** True once this submission has been counted on the monthly meter. */
   metered?: boolean;
+  /** The usage period (YYYY-MM) the unit was counted in, so "Mark spam" gives it back to the right month. */
+  meteredPeriod?: string;
+  /** How many times the cron re-drove this stuck `received` row (capped, see deliverPending). */
+  redrives?: number;
   origin?: string;
   ipHash: string;
   ua?: string;

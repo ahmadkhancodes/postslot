@@ -10,6 +10,7 @@ import { log } from "@/lib/logger";
 import { sendMail } from "@/lib/mail";
 import { inviteEmail, magicLinkEmail } from "@/lib/mail/templates";
 import { isDisposableEmail } from "@/lib/security/disposable";
+import { RULES } from "@/lib/security/ratelimit";
 import { ac, roles } from "./roles";
 
 // Better Auth: magic link, passkeys, TOTP, orgs + roles, API keys (hashed, prefix shown).
@@ -67,7 +68,16 @@ export function createAuth(db: BetterAuthOptions["database"]) {
       updateAge: 60 * 60 * 24,
       cookieCache: { enabled: true, maxAge: 300 },
     },
-    rateLimit: { enabled: true, window: 60, max: 60, storage: "database" },
+    rateLimit: {
+      enabled: true, window: 60, max: 60, storage: "database",
+      // Per client IP. Sign-in by magic link also has a per-address limit in sendMagicLink; invitations a per-workspace one.
+      customRules: {
+        "/sign-in/magic-link": { window: 600, max: 30 },
+        "/magic-link/verify": { window: 600, max: 60 },
+        "/organization/invite-member": { window: 3600, max: 60 },
+        "/delete-user": { window: 3600, max: 10 },
+      },
+    },
     emailAndPassword: { enabled: false },
     socialProviders:
       e.GOOGLE_CLIENT_ID && e.GOOGLE_CLIENT_SECRET
@@ -93,6 +103,12 @@ export function createAuth(db: BetterAuthOptions["database"]) {
         expiresIn: 600,
         disableSignUp: false,
         sendMagicLink: async ({ email, url }) => {
+          // Per address: five links per 10 minutes. Over that we send nothing and say nothing different (no mail bombing of a victim, no enumeration).
+          const { rateLimit } = await import("@/lib/security/ratelimit");
+          if (!(await rateLimit(`magic:${email.toLowerCase()}`, RULES.authEmail).catch(() => ({ ok: true }))).ok) {
+            log.warn("magic_link_throttled");
+            return;
+          }
           const m = magicLinkEmail(url);
           // A provider rejection must not surface as a 500 or leak its message (it also keeps sign-in from revealing which addresses bounce).
           await sendMail({ to: email, ...m, category: "transactional" }).catch((e: Error) => log.warn("magic_link_mail_failed", { message: e.message.slice(0, 120) }));
@@ -112,6 +128,11 @@ export function createAuth(db: BetterAuthOptions["database"]) {
           return seatLimit(await getDb(), org.id);
         },
         sendInvitationEmail: async (data) => {
+          const { rateLimit } = await import("@/lib/security/ratelimit");
+          if (!(await rateLimit(`invite:${data.organization.id}`, { limit: 30, windowMs: 3600_000 }).catch(() => ({ ok: true }))).ok) {
+            log.warn("invite_throttled");
+            return;
+          }
           const url = `${base}/accept-invite/${data.id}`;
           const m = inviteEmail({ orgName: data.organization.name, inviter: data.inviter.user.name || data.inviter.user.email, url, role: data.role });
           await sendMail({ to: data.email, ...m, category: "transactional" }).catch((e: Error) => log.warn("invite_mail_failed", { message: e.message.slice(0, 120) }));

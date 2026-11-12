@@ -57,7 +57,12 @@ export async function handleFormPost(db: Db, req: Request, key: string, deps: De
   const asJson = wantsJson(req, ctype.includes("application/json") ? "json" : "form");
   try {
     const form = /^[0-9A-Za-z]{22}$/.test(key) ? await db.docs<Form>("forms").findOne({ key }) : null;
-    if (!form) return fail(asJson, 404, "unknown_form");
+    if (!form) {
+      // Guessing keys: a client that keeps posting to unknown keys is slowed down (30 a minute), the answer stays the same 404 until then.
+      const guess = (await hmacSha256Hex(ipSecret(), clientIp(req))).slice(0, 24);
+      if (await limited(db, `badkey:${guess}`, RULES.publicForm)) return fail(asJson, 429, "rate_limited", { "retry-after": "60" });
+      return fail(asJson, 404, "unknown_form");
+    }
     if (form.status !== "active") return fail(asJson, 403, "form_paused");
 
     const origin = requestOrigin(req);

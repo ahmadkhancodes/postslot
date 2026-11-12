@@ -5,6 +5,7 @@ import { ORG_DOC_COLLECTIONS, type AuditEntry, type BillingAccount, type Db, typ
 const cmpVal = (v: unknown) => (v instanceof Date ? v.getTime() : v);
 
 /** Filter matcher mirroring the Mongo subset in DocFilter. */
+const EXPORT_CAP = 50_000;
 export function matchDoc(doc: Record<string, unknown>, filter: DocFilter): boolean {
   return Object.entries(filter).every(([k, cond]) => {
     const v = doc[k];
@@ -246,7 +247,9 @@ export function createMemoryDb(app: string, config: Record<string, string> = {})
         auditLog: audit.filter((a) => a.orgId === orgId),
         forms: await this.docs("forms").find({ orgId }),
         recipients: (await this.docs<{ _id: string; verifyTokenHash?: string }>("recipients").find({ orgId })).map(({ verifyTokenHash: _t, ...r }) => r),
-        submissions: await this.docs("submissions").find({ orgId }, { sort: { receivedAt: -1 }, limit: 5000 }),
+        submissions: await this.docs("submissions").find({ orgId }, { sort: { receivedAt: -1 }, limit: EXPORT_CAP }),
+        deliveries: await this.docs("deliveries").find({ orgId }, { limit: EXPORT_CAP }),
+        receiptEvents: await this.docs("delivery_events").find({ orgId }, { limit: EXPORT_CAP * 4 }),
       };
     },
     async deleteOrgData(orgId) {

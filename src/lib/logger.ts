@@ -2,11 +2,17 @@
 type Level = "debug" | "info" | "warn" | "error";
 type Fields = { code?: string; route?: string; userId?: string; orgId?: string; [k: string]: unknown };
 
-const SECRETISH = /(token|secret|password|authorization|cookie|email|code)$/i;
+const SECRETISH = /(token|secret|password|authorization|cookie|email|code|^ip$|^to$|^from$|replyto|^body$|^fields$|^key$|apikey|^uri$)$/i;
+const EMAIL_RE = /[^\s@<>"',;]+@[^\s@<>"',;]+\.[a-z]{2,}/gi;
+const URI_RE = /mongodb(\+srv)?:\/\/\S+/gi;
+const BEARER_RE = /\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{8,}/gi;
+
+/** Free text (error messages) can carry an address, a connection string or a bearer token: mask them. */
+export const scrubText = (v: string) => v.replace(URI_RE, "[uri]").replace(BEARER_RE, "$1 [redacted]").replace(EMAIL_RE, "[email]");
 
 export function scrub(fields: Fields): Fields {
   const out: Fields = {};
-  for (const [k, v] of Object.entries(fields)) out[k] = SECRETISH.test(k) && k !== "code" ? "[redacted]" : v;
+  for (const [k, v] of Object.entries(fields)) out[k] = SECRETISH.test(k) && k !== "code" ? "[redacted]" : typeof v === "string" ? scrubText(v) : v;
   return out;
 }
 

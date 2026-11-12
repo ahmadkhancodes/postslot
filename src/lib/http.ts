@@ -62,6 +62,12 @@ export function assertSameOrigin(req: Request, origins = allowedOrigins()): void
   if (!origin || !(origin === self || origins.includes(origin))) throw new HttpError(403, "bad_origin");
 }
 
+/** The database is down, slow or refusing connections: answer 503 + Retry-After (a sentence for the user), not a raw 500. */
+export function isDbUnavailable(e: unknown): boolean {
+  const name = (e as Error)?.name ?? "";
+  return /^Mongo(ServerSelection|Network|NetworkTimeout|ServerClosed|PoolCleared|NotConnected|WaitQueueTimeout)/.test(name) || (e as Error)?.message === "db_timeout";
+}
+
 type Handler<C> = (req: Request, ctx: C) => Promise<Response>;
 
 /** Wraps a route handler: CSRF check (unless `csrf: false`), HttpError -> {error: code}, unknown -> 500 server_error. */
@@ -72,6 +78,10 @@ export function withApi<C = unknown>(handler: Handler<C>, opts: { csrf?: boolean
       return await handler(req, ctx);
     } catch (e) {
       if (e instanceof HttpError) return json({ error: e.code, ...(e.details ? { details: e.details } : {}) }, e.status);
+      if (isDbUnavailable(e)) {
+        log.error("db_unavailable", { route: opts.route ?? new URL(req.url).pathname, name: (e as Error).name });
+        return json({ error: "service_unavailable" }, 503, { "retry-after": "5" });
+      }
       log.error("server_error", { route: opts.route ?? new URL(req.url).pathname, message: (e as Error)?.message });
       return json({ error: "server_error" }, 500);
     }

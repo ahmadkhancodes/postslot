@@ -40,7 +40,7 @@ All P1-1 to P1-11 above are fixed; none is open. Money and mail paths re-checked
 | L-2 | `src/lib/auth/index.ts` magic link and invitation mail | A provider rejection surfaced as a 500 from the auth handler. | **Fixed:** caught and logged; no provider text reaches the client. |
 | L-3 | `src/lib/billing/webhook.ts` | Unknown event types were acknowledged but not logged. | **Fixed:** 200 plus an info log; test added. |
 | L-4 | Stripe webhook idempotency | Entitlement is recomputed from Stripe subscriptions on every relevant event (subscription.*, invoice.*, checkout.session.completed, charge.refunded), the event id is recorded only after success, duplicates answer 200. Out-of-order and duplicate events converge; checkout success does not rely on the redirect (webhook plus `?refresh=1`). | **Checked, fine** (existing tests C-25, C-26). |
-| L-5 | `payment_intent.succeeded` (lifetime) | A `charge.refunded` processed *before* a late `payment_intent.succeeded` of the same lifetime payment would leave the plan granted. Needs the Stripe API to look up the charge; extremely rare. | **Open (P2):** check the PI's charge `refunded` flag before granting. |
+| L-5 | `payment_intent.succeeded` (lifetime) | A `charge.refunded` processed *before* a late `payment_intent.succeeded` of the same lifetime payment would leave the plan granted. Needs the Stripe API to look up the charge; extremely rare. | **Open (P2), reason:** needs live Stripe API (no key here), extremely rare. Check the PI's charge `refunded` flag before granting. |
 | L-6 | Delivery mail, owner notices | Already catch provider errors (retry with backoff, `owner_mail_failed` warning). | **Checked, fine.** |
 
 ## P2
@@ -49,15 +49,15 @@ All P1-1 to P1-11 above are fixed; none is open. Money and mail paths re-checked
 |---|---|---|---|
 | P2-1 | `src/lib/inbox/purge.ts:37` | Test submissions (stamped 7 days) were re-stamped to the plan's history by the purge and kept for months. | **Fixed** (test rows keep their 7 days). |
 | P2-2 | `src/content/legal/privacy.ts` | Said export and delete live under "Settings, then Account"; the page is Settings, Profile. | **Fixed.** |
-| P2-3 | `src/lib/delivery/process.ts:95` | Mark spam gives the unit back to the month the submission was *received*, but a held row released next month was counted in the month it was *admitted*. | Store `meteredPeriod` and refund that period. |
-| P2-4 | `src/lib/delivery/process.ts:57`, `src/app/api/forms/[id]/route.ts:21` | Deleting a form keeps its submissions; a row still `received` when its form is deleted (or one that always throws) stays `received`, and `deliver-pending` takes the 100 oldest stuck rows, so 100 such rows would starve the re-drive for everyone. | Delete or mark such rows `failed` when the form is gone; cap re-drive attempts. |
+| P2-3 | `src/lib/delivery/process.ts:95` | Mark spam gives the unit back to the month the submission was *received*, but a held row released next month was counted in the month it was *admitted*. | **Fixed** (`hardening: mark spam refunds meteredPeriod`): `meteredPeriod` stored when counted, refunded to that month. Test `tests/unit/hardening.test.ts`. |
+| P2-4 | `src/lib/delivery/process.ts:57`, `src/app/api/forms/[id]/route.ts:21` | Deleting a form keeps its submissions; a row still `received` when its form is deleted (or one that always throws) stays `received`, and `deliver-pending` takes the 100 oldest stuck rows, so 100 such rows would starve the re-drive for everyone. | **Fixed** (`hardening: stuck rows`): rows of a deleted form, or past 20 re-drives, are marked `failed` with a receipt event; one failing row no longer aborts the batch. |
 | P2-5 | `src/lib/security/ratelimit.ts:15` | 5 posts a minute per IP across all forms: an office or school behind one NAT can get 429 (rejected, not held). | **Fixed** (IP limit is per form and IP). |
 | P2-6 | `src/lib/security/disposable.ts:23` | `normEmail` lets `<`, `>`, `"` and `,` through, so Reply-To can carry a display-name form. No header injection (no CR/LF, JSON API). | **Fixed** (`< > " , ; : ( ) [ ] \` rejected). |
-| P2-7 | `src/content/compare.ts`, landing compare table | `{{verify}}` cells render publicly. Honest, but unpolished. | Check the competitor pages and fill or drop the rows (owner or a research task). |
-| P2-8 | `src/config/product.ts` `subProcessors` | Google (sign-in, when `GOOGLE_CLIENT_ID` is set) is not listed; the email provider is unnamed. Cloudflare (cron worker) carries no personal data. | **Partly fixed:** Resend is named. Add Google when Google sign-in is turned on. |
-| P2-9 | `src/lib/billing/webhook.ts` | Upgrade via `/api/billing/entitlement?refresh=1` does not release held submissions; the Stripe webhook does it seconds later. | Call `releaseHeld` after a refresh that raises the plan. |
-| P2-10 | `src/lib/webhooks/outbound.ts` | DNS rebinding between our lookup and `fetch`'s own lookup. | Pin the resolved address with a custom agent when moving to the VPS. |
-| P2-11 | `src/lib/db/mongo.ts:254` (`exportOrgData`) | Export caps submissions at 5,000 and leaves out deliveries and receipt events. | Stream the export, include receipts. |
+| P2-7 | `src/content/compare.ts`, landing compare table | `{{verify}}` cells render publicly. Honest, but unpolished. | **Open, business/research:** needs real competitor facts from the owner. |
+| P2-8 | `src/config/product.ts` `subProcessors` | Google (sign-in, when `GOOGLE_CLIENT_ID` is set) is not listed; the email provider is unnamed. Cloudflare (cron worker) carries no personal data. | **Partly fixed:** Resend is named. **Open, reason:** Google sign-in is off in production; add the sub-processor the day `GOOGLE_CLIENT_ID` is set. |
+| P2-9 | `src/lib/billing/webhook.ts` | Upgrade via `/api/billing/entitlement?refresh=1` does not release held submissions; the Stripe webhook does it seconds later. | **Fixed** (`hardening: release held on refresh`): `?refresh=1` calls `releaseHeld` (atomic claim, safe next to the webhook). |
+| P2-10 | `src/lib/webhooks/outbound.ts` | DNS rebinding between our lookup and `fetch`'s own lookup. | **Open, reason:** needs a custom agent/undici dispatcher and no new library is allowed here; planned for the VPS move. |
+| P2-11 | `src/lib/db/mongo.ts:254` (`exportOrgData`) | Export caps submissions at 5,000 and leaves out deliveries and receipt events. | **Fixed** (`hardening: export`): deliveries and receipt events included; caps raised to 50,000 submissions (CSV too). True streaming left for the VPS. |
 | P2-12 | Free plan "7 day delivery log" | Receipts are actually kept 90 days on every plan (D-M4-4). True as a minimum, but it hides a difference we do not enforce. | **Fixed** (copy now says "Delivery receipts for every email"). |
 
 ## Checked and fine
@@ -73,3 +73,15 @@ All P1-1 to P1-11 above are fixed; none is open. Money and mail paths re-checked
 - Secrets: logs carry codes and messages, not bodies or keys; webhook secrets are returned once and stripped from lists and exports.
 - Env: every key in `src/lib/env.ts` is in `.env.example`.
 - Accessibility (code read): labelled inputs (`Field`), 44 px targets (`min-h-11`) on nav, buttons and toggles, `focus-visible:focus-ring` everywhere, `role="status"` for async results, reduced motion handled in `globals.css`. M1 to M4 screenshots at 375/1440 light/dark show no overflow. A full keyboard and screen reader pass with a person is still worth doing before paid launch.
+
+## Hardening and usefulness round (12 Nov 2026)
+
+| # | Area | Change |
+|---|---|---|
+| H-1 | CSP | Audited against every origin in `src` (client `fetch`, `<form action>`, Stripe redirects, scripts). Unit test fails if client code fetches an origin `connect-src` lacks; Playwright `tests/e2e/hardening.spec.ts` walks the pages in a real browser and fails on any CSP violation console message. |
+| H-2 | Rate limits | Magic link: 30 per IP per 10 min plus 5 per address per 10 min (over it: no mail, identical answer). Invites: 60 per IP per hour, 30 per workspace per hour. Unknown form keys: 30 misses a minute per client then 429. Bulk actions 20 a minute per workspace. Delete-user 10 an hour. |
+| H-3 | Resilience | Mongo connection errors answer 503 `service_unavailable` + Retry-After (sentence in the UI); 30 s client timeout; Resend call 10 s timeout; Stripe client 15 s timeout. |
+| H-4 | Operations | `/api/health` adds `deps` (mail provider word, billing configured/stub, booleans) and `degraded` list; still 503 only for the database. Indexes added for `deliveries` and `delivery_events` by `orgId` (export, delete). Logs mask emails, connection strings, bearer tokens and ip/to/body keys. |
+| H-5 | Secrets | `tests/unit/bundle-secrets.test.ts` greps `.next/static` for secret names, shapes and live values (clean; better-auth's empty env accessor is allow-listed). |
+| H-6 | Usefulness | First-run checklist on the inbox, inbox pagination ("Older submissions"), keyboard shortcuts (j/k, /, Esc), bulk "Not spam" for a page of spam, migration doc (Formspree, Web3Forms), export includes receipts. |
+| H-7 | Stripe | Real-signature tests: bad, missing, tampered and replayed (old timestamp) signatures rejected, duplicates 200. |

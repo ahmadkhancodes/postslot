@@ -1,7 +1,10 @@
 import { DownloadSimple, MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { Meter } from "@/components/app/meter";
+import { checklist } from "@/lib/onboarding/checklist";
 import { PageHeader } from "@/components/app/page-header";
+import { BulkActions } from "@/components/app/inbox/bulk-actions";
+import { InboxShortcuts } from "@/components/app/inbox/shortcuts";
 import { SubmissionDetail } from "@/components/app/inbox/submission-detail";
 import { chipFor, previewOf, senderOf, shortWhen } from "@/components/app/inbox/status";
 import { StatusChip } from "@/components/marketing/demo/receipt";
@@ -13,7 +16,7 @@ import { can } from "@/lib/auth/roles";
 import { requireOrg } from "@/lib/auth/session";
 import { currentUsage } from "@/lib/billing/usage";
 import { getDb } from "@/lib/db";
-import type { Form, Recipient } from "@/lib/forms/types";
+import type { Form, Recipient, Submission } from "@/lib/forms/types";
 import { FILTER_LABEL, INBOX_FILTERS, filterCounts, getDetail, listSubmissions, parseFilter } from "@/lib/inbox/query";
 
 export const metadata = { title: "Inbox" };
@@ -30,13 +33,23 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
   const q = one(sp.q)?.slice(0, 100) ?? "";
   const formId = one(sp.form) || undefined;
   const selected = one(sp.id);
+  const beforeRaw = one(sp.before);
+  const before = beforeRaw && !Number.isNaN(Date.parse(beforeRaw)) ? new Date(beforeRaw) : undefined;
+  const PAGE = 50;
   const [forms, recipients, rows, counts, usage] = await Promise.all([
     db.docs<Form>("forms").find({ orgId: ctx.org.id }, { sort: { createdAt: -1 }, limit: 200 }),
     db.docs<Recipient>("recipients").find({ orgId: ctx.org.id }),
-    listSubmissions(db, ctx.org.id, { filter, q, formId, limit: 50 }),
+    listSubmissions(db, ctx.org.id, { filter, q, formId, before, limit: PAGE + 1 }),
     filterCounts(db, ctx.org.id, formId),
     currentUsage(db, ctx.org.id, ["submissions"]),
   ]);
+  const hasMore = rows.length > PAGE;
+  if (hasMore) rows.length = PAGE;
+  const [testCount, realCount] = await Promise.all([
+    db.docs<Submission>("submissions").count({ orgId: ctx.org.id, isTest: true }),
+    db.docs<Submission>("submissions").count({ orgId: ctx.org.id, isTest: false }),
+  ]);
+  const setup = checklist({ forms: forms.length, confirmedRecipient: recipients.some((r) => r.verifiedAt), testSubmissions: testCount, realSubmissions: realCount, firstFormId: forms[forms.length - 1]?._id });
   const detail = selected ? await getDetail(db, ctx.org.id, selected) : null;
   const canWrite = can(ctx.role, "data", "write");
   const bounced = recipients.filter((r) => r.bouncedAt);
@@ -44,7 +57,7 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
 
   const href = (over: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
-    const cur: Record<string, string | undefined> = { filter: filter === "all" ? undefined : filter, q: q || undefined, form: formId, ...over };
+    const cur: Record<string, string | undefined> = { filter: filter === "all" ? undefined : filter, q: q || undefined, form: formId, before: before?.toISOString(), ...over };
     for (const [k, v] of Object.entries(cur)) if (v) p.set(k, v);
     const s = p.toString();
     return s ? `/app?${s}` : "/app";
@@ -75,6 +88,21 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
         }
       />
       <div className="flex flex-col gap-3">
+        {!setup.complete ? (
+          <section aria-label="Get started" className="rounded border border-border bg-surface p-4">
+            <h2 className="title-4 text-text">Get to your first lead <span className="font-mono text-xs text-text-muted">{setup.done}/{setup.steps.length}</span></h2>
+            <ol className="mt-3 grid gap-2 sm:grid-cols-2">
+              {setup.steps.map((st) => (
+                <li key={st.id}>
+                  <Link href={st.href} className="flex min-h-11 items-start gap-3 rounded px-2 py-2 hover:bg-surface-raised focus-visible:focus-ring">
+                    <span aria-hidden className={cn("mt-1 inline-flex size-6 shrink-0 items-center justify-center rounded-full border text-xs", st.done ? "border-accent bg-accent text-white" : "border-border text-text-muted")}>{st.done ? "✓" : ""}</span>
+                    <span className="flex flex-col"><span className={cn("body-5", st.done ? "text-text-subtle line-through" : "text-text")}>{st.title}<span className="sr-only">{st.done ? " (done)" : " (to do)"}</span></span><span className="caption-2 text-text-subtle">{st.hint}</span></span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ) : null}
         {bounced.map((r) => (
           <Notice key={r._id} tone="danger" title={`We couldn't deliver to ${r.email}`} action={<Link href="/app/forms" className={buttonClass("secondary", "sm")}>Fix it</Link>}>
             {r.bounceDetail ?? "The address was rejected."} Fix the address or confirm it exists, then press Redeliver on a submission.
@@ -108,7 +136,7 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
         {INBOX_FILTERS.map((f) => (
           <Link
             key={f}
-            href={href({ filter: f === "all" ? undefined : f, id: undefined })}
+            href={href({ filter: f === "all" ? undefined : f, id: undefined, before: undefined })}
             aria-current={f === filter ? "page" : undefined}
             className={cn("relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 whitespace-nowrap px-2 body-5 transition-colors duration-300 focus-visible:focus-ring", f === filter ? "text-text after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-accent" : "text-text-subtle hover:text-text")}
           >
@@ -117,9 +145,15 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
         ))}
       </nav>
 
+      <InboxShortcuts hrefs={rows.map((r) => ({ id: r._id, href: href({ id: r._id }) }))} selected={selected} listHref={href({ id: undefined })} />
+      <p className="-mt-3 caption-2 text-text-subtle max-lg:hidden">Shortcuts: <kbd className="font-mono">j</kbd> / <kbd className="font-mono">k</kbd> next and previous, <kbd className="font-mono">/</kbd> search, <kbd className="font-mono">Esc</kbd> close.</p>
       <div className="grid gap-6 lg:grid-cols-12">
         <section aria-label="Submissions" className={cn("flex flex-col lg:col-span-5", detail ? "hidden lg:flex" : "")}>
+          {canWrite && filter === "spam" && rows.length > 1 ? (
+            <div className="mb-3"><BulkActions ids={rows.map((r) => r._id)} mode="spam" /></div>
+          ) : null}
           {rows.length ? (
+            <>
             <ul className="flex flex-col overflow-hidden rounded border border-border bg-surface">
               {rows.map((s) => (
                 <li key={s._id} className="border-b border-border last:border-b-0">
@@ -142,6 +176,11 @@ export default async function InboxPage({ searchParams }: { searchParams: SP }) 
                 </li>
               ))}
             </ul>
+            <nav aria-label="Pages" className="mt-3 flex items-center justify-between gap-3 caption-2 text-text-subtle">
+              {before ? <Link href={href({ before: undefined, id: undefined })} className={buttonClass("tertiary", "md")}>Newest</Link> : <span>{rows.length} newest shown</span>}
+              {hasMore ? <Link rel="next" href={href({ before: rows[rows.length - 1]!.receivedAt.toISOString(), id: undefined })} className={buttonClass("secondary", "md")}>Older submissions</Link> : null}
+            </nav>
+            </>
           ) : (
             <EmptyState
               title={q ? "No submissions match your search" : filter === "spam" ? "No spam caught" : "No submissions yet"}
