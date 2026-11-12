@@ -27,22 +27,22 @@ function plainText(form: NotifyForm, sub: Submission, entries: [string, string][
 }
 
 const shell = (inner: string) =>
-  `<!doctype html><html><body style="margin:0;padding:24px;background:#f6f6f8;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#17181c"><div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e1e2e6;border-radius:8px;padding:24px">${inner}</div><p style="max-width:560px;margin:12px auto 0;font-size:12px;color:#6b6e76">${FOOT}</p></body></html>`;
-const testBanner = (sub: Submission) => (sub.isTest ? `<p style="margin:0 0 16px;padding:8px 12px;font-size:13px;background:#f1eefb;border-radius:6px;color:#3b2a7a">${esc(TEST_NOTE)}</p>` : "");
-const replyHtml = (sub: Submission) => (sub.replyTo ? `<p style="margin:16px 0 0;font-size:13px;color:#55585f">${esc(replyLine(sub))}</p>` : "");
+  `<!doctype html><html><body style="margin:0;padding:24px;background:#f6f5f1;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1d24"><div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e4e2dc;border-radius:4px;padding:24px">${inner}</div><p style="max-width:560px;margin:12px auto 0;font-size:12px;color:#63666e">${FOOT}</p></body></html>`;
+const testBanner = (sub: Submission) => (sub.isTest ? `<p style="margin:0 0 16px;padding:8px 12px;font-size:13px;background:#f3ead8;border:1px solid #dccba8;border-radius:2px;color:#1a1d24">${esc(TEST_NOTE)}</p>` : "");
+const replyHtml = (sub: Submission) => (sub.replyTo ? `<p style="margin:16px 0 0;font-size:13px;color:#4f525a">${esc(replyLine(sub))}</p>` : "");
 
 function defaultHtml(form: NotifyForm, sub: Submission, entries: [string, string][]): string {
   const rows = entries
-    .map(([k, v]) => `<tr><th align="left" style="padding:6px 12px 6px 0;vertical-align:top;color:#55585f;font-weight:500">${esc(k)}</th><td style="padding:6px 0;white-space:pre-wrap">${esc(v)}</td></tr>`)
+    .map(([k, v]) => `<tr><th align="left" style="padding:6px 12px 6px 0;vertical-align:top;color:#4f525a;font-weight:500">${esc(k)}</th><td style="padding:6px 0;white-space:pre-wrap">${esc(v)}</td></tr>`)
     .join("");
-  return shell(`${testBanner(sub)}<p style="margin:0 0 16px;font-size:13px;color:#55585f">New submission on ${esc(form.name)}</p><table role="presentation" style="border-collapse:collapse;font-size:15px;width:100%">${rows}</table>${replyHtml(sub)}`);
+  return shell(`${testBanner(sub)}<p style="margin:0 0 16px;font-size:13px;color:#4f525a">New submission on ${esc(form.name)}</p><table role="presentation" style="border-collapse:collapse;font-size:15px;width:100%">${rows}</table>${replyHtml(sub)}`);
 }
 
 function compactHtml(form: NotifyForm, sub: Submission, entries: [string, string][]): string {
   const rows = entries
-    .map(([k, v]) => `<tr><th align="left" style="padding:4px 8px;border:1px solid #e1e2e6;background:#f6f6f8;font-size:12px;font-weight:600;vertical-align:top;white-space:nowrap">${esc(k)}</th><td style="padding:4px 8px;border:1px solid #e1e2e6;font-size:13px;white-space:pre-wrap">${esc(v)}</td></tr>`)
+    .map(([k, v]) => `<tr><th align="left" style="padding:4px 8px;border:1px solid #e4e2dc;background:#f6f5f1;font-size:12px;font-weight:600;vertical-align:top;white-space:nowrap">${esc(k)}</th><td style="padding:4px 8px;border:1px solid #e4e2dc;font-size:13px;white-space:pre-wrap">${esc(v)}</td></tr>`)
     .join("");
-  return shell(`${testBanner(sub)}<p style="margin:0 0 8px;font-size:12px;color:#55585f">${esc(form.name)}</p><table style="border-collapse:collapse;width:100%">${rows}</table>${replyHtml(sub)}`);
+  return shell(`${testBanner(sub)}<p style="margin:0 0 8px;font-size:12px;color:#4f525a">${esc(form.name)}</p><table style="border-collapse:collapse;width:100%">${rows}</table>${replyHtml(sub)}`);
 }
 
 /**
@@ -75,6 +75,6 @@ export const previewNotification = (form: NotifyForm & Pick<Form, "_id" | "orgId
 export function renderVerification(email: string, link: string): { subject: string; text: string; html: string } {
   const subject = "Confirm this address to receive form submissions";
   const text = `Someone added ${email} as a recipient on Postslot. Confirm it to start receiving submissions:\n\n${link}\n\nIf this was not you, ignore this email. Nothing is sent to this address until you confirm.`;
-  const html = `<p>Someone added <b>${esc(email)}</b> as a recipient on Postslot. Confirm it to start receiving submissions:</p><p><a href="${esc(link)}">Confirm this address</a></p><p style="color:#55585f">If this was not you, ignore this email. Nothing is sent to this address until you confirm.</p>`;
+  const html = `<p>Someone added <b>${esc(email)}</b> as a recipient on Postslot. Confirm it to start receiving submissions:</p><p><a href="${esc(link)}">Confirm this address</a></p><p style="color:#4f525a">If this was not you, ignore this email. Nothing is sent to this address until you confirm.</p>`;
   return { subject, text, html };
 }

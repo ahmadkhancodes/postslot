@@ -24,9 +24,9 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   const ok = await apply(new URL(req.url));
   const body = ok
-    ? "<h1>You are unsubscribed</h1><p>You will not get these emails again. Sign-in emails still arrive.</p>"
-    : "<h1>This link is not valid</h1><p>Use the link from your most recent email.</p>";
-  return new Response(`<!doctype html><meta name="viewport" content="width=device-width"><title>Unsubscribe</title><body style="font-family:system-ui;max-width:560px;margin:64px auto;padding:0 16px">${body}<p><a href="/">Back to the site</a></p></body>`, {
+    ? "<h1 style='font-weight:500;font-family:Georgia,serif'>You are unsubscribed</h1><p>You will not get these emails again. Sign-in emails still arrive.</p>"
+    : "<h1 style='font-weight:500;font-family:Georgia,serif'>This link is not valid</h1><p>Use the link from your most recent email.</p>";
+  return new Response(`<!doctype html><meta name="viewport" content="width=device-width"><title>Unsubscribe</title><body style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1a1d24;max-width:560px;margin:64px auto;padding:0 16px;line-height:1.5">${body}<p><a href="/" style="color:#b3431b">Back to the site</a></p></body>`, {
     status: ok ? 200 : 400,
     headers: { "content-type": "text/html; charset=utf-8" },
   });
