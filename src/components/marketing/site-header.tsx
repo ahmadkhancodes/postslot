@@ -62,8 +62,8 @@ export function SiteHeader() {
   const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const linkClass = (href: string) =>
     cn(
-      "inline-flex min-h-11 items-center rounded-md px-3 button-sm transition-colors duration-300 ease-out-kit hover:bg-surface-raised hover:text-text focus-visible:focus-ring",
-      isCurrent(href) ? "text-text" : "text-text-subtle",
+      "inline-flex min-h-11 items-center rounded-sm px-3 button-sm underline-offset-8 transition-colors duration-300 ease-out-kit hover:text-text focus-visible:focus-ring",
+      isCurrent(href) ? "text-text underline decoration-accent decoration-2" : "text-text-subtle",
     );
 
   const panelItems = [
@@ -73,9 +73,10 @@ export function SiteHeader() {
   ];
 
   return (
-    <header className="fixed inset-x-0 top-3 z-50 px-4 sm:px-6">
-      <div className="relative z-50 mx-auto flex w-full max-w-7xl items-center justify-between gap-4 rounded-lg border border-border bg-surface/80 py-1 pl-4 pr-1 backdrop-blur-md">
-        <Link href="/" className="inline-flex min-h-11 items-center rounded-md title-2 text-text focus-visible:focus-ring" aria-label={`${product.name} home`}>
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-surface">
+      <div className="relative z-50 mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-2 sm:px-6 lg:px-8">
+        <Link href="/" className="inline-flex min-h-11 items-center gap-2 rounded-sm heading-6 text-text focus-visible:focus-ring" aria-label={`${product.name} home`}>
+          <span aria-hidden className="size-3 rounded-xs bg-accent" />
           {product.name}
         </Link>
         <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
@@ -86,7 +87,7 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="flex items-center gap-1">
-          <Link href="/sign-in" className={cn(buttonClass("tertiary", "md"), "max-md:hidden")}>Sign in</Link>
+          <Link href="/sign-in" className={cn(linkClass("/sign-in"), "max-md:hidden")}>Sign in</Link>
           <Link href="/sign-in" className={cn(buttonClass("primary", "md"), "max-md:hidden")}>Create a form</Link>
           <button
             ref={toggleRef}

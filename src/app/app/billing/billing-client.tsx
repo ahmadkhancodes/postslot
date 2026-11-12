@@ -133,8 +133,8 @@ export function BillingClient(p: Props) {
 
       <section aria-labelledby="plans-h" className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <h2 id="plans-h" className="title-2 text-text">Plans</h2>
-          <div role="group" aria-label="Billing interval" className="inline-flex rounded-md border border-border-strong p-1">
+          <h2 id="plans-h" className="heading-6 text-text">Plans</h2>
+          <div role="group" aria-label="Billing interval" className="inline-flex w-fit rounded-sm border border-border-strong bg-surface p-0.5">
             {(["month", "year"] as const).map((i) => (
               <button
                 key={i}
@@ -151,7 +151,7 @@ export function BillingClient(p: Props) {
             ))}
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-px overflow-hidden rounded border border-border bg-border md:grid-cols-2 xl:grid-cols-4">
           {product.plans.map((pl) => {
             const price = pl.prices.find((x) => x.interval === interval) ?? pl.prices[0];
             const current = pl.id === live.planId;
@@ -160,15 +160,15 @@ export function BillingClient(p: Props) {
               <article
                 key={pl.id}
                 aria-label={pl.name}
-                className={cn("flex flex-col gap-4 rounded-lg border bg-surface p-4", current || chosen ? "border-action" : "border-border")}
+                className={cn("relative flex flex-col gap-4 p-4", current || chosen ? "bg-surface-receipt" : "bg-surface")}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="title-3 text-text">{pl.name}</h3>
+                  <h3 className="heading-6 text-text">{pl.name}</h3>
                   {current ? <Badge tone="success">Current</Badge> : null}
                 </div>
                 <p className="body-6 text-text-subtle">{pl.tagline}</p>
                 <p className="text-text">
-                  <span className="heading-5 tabular-nums">{price ? money(price.usd) : "$0"}</span>
+                  <span className="heading-4 tabular-nums">{price ? money(price.usd) : "$0"}</span>
                   <span className="caption-2 text-text-subtle"> {price ? `per ${price.interval}` : "forever"}</span>
                 </p>
                 {price && price.interval !== interval ? <p className="caption-2 text-text-muted">Billed {price.interval === "year" ? "yearly" : "monthly"} only.</p> : null}
@@ -180,7 +180,7 @@ export function BillingClient(p: Props) {
                 ) : p.isPaid ? (
                   <Button variant="secondary" onClick={portal} loading={busy === "portal"} disabled={!p.canManage}>Change in billing portal</Button>
                 ) : (
-                  <Button onClick={() => checkout(pl)} loading={busy === pl.id} disabled={!p.canManage || !!busy}>{pl.cta}</Button>
+                  <Button variant={pl.featured ? "primary" : "secondary"} onClick={() => checkout(pl)} loading={busy === pl.id} disabled={!p.canManage || !!busy}>{pl.cta}</Button>
                 )}
               </article>
             );

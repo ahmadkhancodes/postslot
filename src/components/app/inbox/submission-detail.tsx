@@ -20,7 +20,7 @@ export function SubmissionDetail({ d, canWrite }: { d: Detail; canWrite: boolean
   const open = timelineOpen(steps);
   const signals = s.signals.filter((x) => x.weight > 0 || x.name === "allowed_sender");
   return (
-    <article aria-labelledby="sub-h" className="flex flex-col gap-6 rounded-lg border border-border bg-surface p-5 sm:p-6">
+    <article aria-labelledby="sub-h" className="flex flex-col gap-6 rounded border border-border bg-surface p-4 sm:p-6">
       <AutoRefresh active={open} />
       <header className="flex flex-col gap-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -38,18 +38,18 @@ export function SubmissionDetail({ d, canWrite }: { d: Detail; canWrite: boolean
         <DetailActions id={s._id} status={s.status} canWrite={canWrite} />
       </header>
 
-      <dl className="flex flex-col gap-4">
-        {s.subject ? <div><dt className="caption-4 text-text-muted">Subject</dt><dd className="body-6 text-text">{s.subject}</dd></div> : null}
+      <dl className="flex flex-col border-t border-border">
+        {s.subject ? <div className="grid gap-1 border-b border-border py-3 sm:grid-cols-[8rem_1fr] sm:gap-4"><dt className="font-mono text-xs leading-5 text-text-muted">subject</dt><dd className="body-6 text-text">{s.subject}</dd></div> : null}
         {Object.entries(s.fields).map(([k, v]) => (
-          <div key={k}>
-            <dt className="caption-4 text-text-muted">{k}</dt>
+          <div key={k} className="grid gap-1 border-b border-border py-3 sm:grid-cols-[8rem_1fr] sm:gap-4">
+            <dt className="break-all font-mono text-xs leading-5 text-text-muted">{k}</dt>
             <dd className="body-6 whitespace-pre-wrap break-words text-text">{v}</dd>
           </div>
         ))}
       </dl>
 
       {signals.length ? (
-        <section aria-labelledby="sig-h" className="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4">
+        <section aria-labelledby="sig-h" className="flex flex-col gap-2 rounded-sm border border-border bg-surface-raised p-4">
           <h3 id="sig-h" className="title-4 text-text">Spam signals <span className="font-mono text-xs text-text-muted">score {s.spamScore.toFixed(2)}{s.scored ? "" : ", unscored"}</span></h3>
           <ul className="flex flex-col gap-1">
             {signals.map((x, i) => (
@@ -61,15 +61,15 @@ export function SubmissionDetail({ d, canWrite }: { d: Detail; canWrite: boolean
         </section>
       ) : null}
 
-      <section aria-labelledby="rcpt-h" className="flex flex-col gap-4">
+      <section aria-labelledby="rcpt-h" className="flex flex-col gap-4 rounded-sm border border-border-receipt bg-surface-receipt p-4 sm:p-6">
         <div className="flex items-start justify-between gap-4">
-          <h3 id="rcpt-h" className="title-3 text-text">Delivery receipt</h3>
-          {accepted ? <Postmark label="DELIVERED" time={clock(accepted.at)} date={dayStamp(accepted.at)} className="size-24 shrink-0 -rotate-6" /> : null}
+          <h3 id="rcpt-h" className="label-mono text-text-subtle">Delivery receipt</h3>
+          {accepted ? <Postmark label="DELIVERED" time={clock(accepted.at)} date={dayStamp(accepted.at)} className="-my-2 size-24 shrink-0" /> : null}
         </div>
         <Timeline steps={steps.map((x) => ({ name: x.label, time: clock(x.at), detail: x.detail, state: x.tone === "warn" ? "deferred" : "done" }))} />
         {open ? <p className="caption-2 text-text-subtle">Waiting for the recipient&apos;s mail server. This page updates by itself.</p> : null}
         {deliveries.length ? (
-          <ul className="flex flex-col gap-1 border-t border-border pt-3">
+          <ul className="flex flex-col gap-1 border-t border-dashed border-border-receipt pt-3">
             {deliveries.map((x) => (
               <li key={x._id} className="caption-2 flex flex-wrap justify-between gap-2 text-text-subtle">
                 <span className="break-all">{x.recipientEmail}</span>

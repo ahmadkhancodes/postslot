@@ -59,11 +59,11 @@ test("public pages render with metadata and no horizontal overflow at 375px", as
   expect(await (await page.request.get("/llms.txt")).text()).toContain("Postslot");
 });
 
-test("landing shows the inbox with its delivery receipt, labelled as an illustration", async ({ page }) => {
+test("landing shows the inbox with its delivery receipt, labelled as example data", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Every form submission delivered");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Every form submission, delivered with a receipt");
   await expect(page.getByRole("img", { name: /Postmark: delivered 14:02:07/ }).first()).toBeVisible();
-  await expect(page.getByText("Illustration. Names and addresses are fictional.")).toBeVisible();
+  await expect(page.getByText("Example data. Names and addresses are fictional.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Create a form" }).first()).toHaveAttribute("href", "/sign-in");
   await expect(page.locator("#pricing")).toContainText("$74");
 

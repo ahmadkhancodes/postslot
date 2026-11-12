@@ -37,7 +37,7 @@ export default async function ComparePage({ params }: Props) {
     <>
       <Section labelledBy="compare-title">
         <div className="flex max-w-2xl flex-col items-start gap-6">
-          <h1 id="compare-title" className="hero-gradient-text heading-3 md:heading-1">{entry.headline}</h1>
+          <h1 id="compare-title" className="heading-3 text-text md:heading-1">{entry.headline}</h1>
           <p className="body-3 text-text-subtle md:title-1">{entry.intro}</p>
           <ButtonLink href="/sign-in" size="lg">Start free</ButtonLink>
         </div>
@@ -51,7 +51,7 @@ export default async function ComparePage({ params }: Props) {
         </div>
         <p className="caption-2 mt-4 max-w-2xl text-text-subtle">
           Checked {entry.checked} from public pages. Source:{" "}
-          <a href={entry.source.url} rel="noopener nofollow" className="text-action underline underline-offset-4 hover:text-action-hover focus-visible:focus-ring">{entry.source.label}</a>.
+          <a href={entry.source.url} rel="noopener nofollow" className="text-accent underline underline-offset-4 hover:text-accent-hover focus-visible:focus-ring">{entry.source.label}</a>.
           {" "}Not affiliated with {entry.competitor}.
         </p>
         <p className="body-6 mt-6 max-w-2xl text-text-subtle">{entry.fitNote}</p>

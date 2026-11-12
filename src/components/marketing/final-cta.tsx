@@ -1,18 +1,27 @@
 import type { ReactNode } from "react";
 import { ButtonLink } from "@/components/ui/button";
-import { Section } from "@/components/ui/layout";
+import { Container } from "@/components/ui/layout";
+import { Postmark } from "./demo/postmark";
 
+/** Closing band on manila, the receipt colour, with the stamp as the one signature mark. */
 export function FinalCta({ title, body, cta, note }: { title: ReactNode; body?: ReactNode; cta: { href: string; label: string }; note?: ReactNode }) {
   return (
-    <Section labelledBy="final-cta-title">
-      <div className="flex flex-col items-start gap-6 rounded-lg bg-surface-inverse p-8 text-text-inverse md:p-16">
-        <h2 id="final-cta-title" className="heading-4 md:heading-2 max-w-3xl">{title}</h2>
-        {body ? <p className="body-3 max-w-2xl opacity-80">{body}</p> : null}
-        <div className="flex flex-wrap items-center gap-4">
-          <ButtonLink href={cta.href} size="lg" variant="secondary" className="border-transparent">{cta.label}</ButtonLink>
-          {note ? <p className="caption-2 opacity-80">{note}</p> : null}
+    <section aria-labelledby="final-cta-title" className="border-y border-border-receipt bg-surface-receipt py-16 md:py-20">
+      <Container>
+        <div className="grid items-center gap-8 md:grid-cols-12">
+          <div className="flex flex-col items-start gap-6 md:col-span-8">
+            <h2 id="final-cta-title" className="heading-4 max-w-3xl text-text md:heading-2">{title}</h2>
+            {body ? <p className="body-3 max-w-2xl text-text-subtle">{body}</p> : null}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <ButtonLink href={cta.href} size="lg">{cta.label}</ButtonLink>
+              {note ? <div className="caption-2 text-text-subtle">{note}</div> : null}
+            </div>
+          </div>
+          <div aria-hidden className="hidden justify-end md:col-span-4 md:flex">
+            <Postmark time="TODAY" date="FREE PLAN" className="h-auto w-3xs max-w-full" />
+          </div>
         </div>
-      </div>
-    </Section>
+      </Container>
+    </section>
   );
 }

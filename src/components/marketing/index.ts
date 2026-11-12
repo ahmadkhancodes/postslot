@@ -10,6 +10,5 @@ export { Faq, type FaqItem } from "./faq";
 export { TaglineReveal } from "./tagline-reveal";
 export { FinalCta } from "./final-cta";
 export { Proof } from "./proof";
-export { StatStrip, type Stat } from "./stat-strip";
 export { InstallSnippet } from "./install-snippet";
 export { InboxExplainer } from "./inbox-explainer";

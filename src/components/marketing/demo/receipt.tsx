@@ -1,23 +1,22 @@
-import { CheckCircle, Clock, ProhibitInset, WarningOctagon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/components/ui/cn";
 
 export type SubmissionStatus = "Delivered" | "Spam blocked" | "Held over limit" | "Returned" | "In transit" | "Held, address unconfirmed";
 
-const chip: Record<SubmissionStatus, { cls: string; Icon: typeof CheckCircle }> = {
-  Delivered: { cls: "border-action text-action bg-action-surface", Icon: CheckCircle },
-  "Spam blocked": { cls: "border-border-strong text-text-subtle bg-surface", Icon: ProhibitInset },
-  "Held over limit": { cls: "border-warning text-warning bg-warning-surface", Icon: Clock },
-  Returned: { cls: "border-danger text-danger bg-danger-surface", Icon: WarningOctagon },
-  "In transit": { cls: "border-border-strong text-text-subtle bg-surface", Icon: Clock },
-  "Held, address unconfirmed": { cls: "border-warning text-warning bg-warning-surface", Icon: Clock },
+const chip: Record<SubmissionStatus, { text: string; dot: string }> = {
+  Delivered: { text: "text-success", dot: "bg-success" },
+  "Spam blocked": { text: "text-text-subtle", dot: "bg-text-muted" },
+  "Held over limit": { text: "text-warning", dot: "bg-warning" },
+  Returned: { text: "text-danger", dot: "bg-danger" },
+  "In transit": { text: "text-text-subtle", dot: "bg-border-strong" },
+  "Held, address unconfirmed": { text: "text-warning", dot: "bg-warning" },
 };
 
-/** Status is always an icon plus words, never colour alone. */
+/** Status is a word plus a square mark, never colour alone. Square, 2px, no pill. */
 export function StatusChip({ status }: { status: SubmissionStatus }) {
-  const { cls, Icon } = chip[status];
+  const { text, dot } = chip[status];
   return (
-    <span className={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-sm border px-2 py-0.5 caption-4", cls)}>
-      <Icon size={16} weight="regular" aria-hidden />
+    <span className={cn("inline-flex items-center gap-2 whitespace-nowrap caption-4", text)}>
+      <span aria-hidden className={cn("size-2 shrink-0 rounded-xs", dot)} />
       {status}
     </span>
   );
@@ -31,22 +30,20 @@ export interface TimelineStep {
   state?: "done" | "deferred";
 }
 
+/** The receipt ledger: time in mono on the left, the event on a ruled line on the right. */
 export function Timeline({ steps }: { steps: TimelineStep[] }) {
   return (
     <ol className="flex flex-col">
       {steps.map((s, i) => {
         const deferred = s.state === "deferred";
-        const Icon = deferred ? Clock : CheckCircle;
         return (
-          <li key={`${s.name}-${i}`} className="relative flex gap-3 pb-3 last:pb-0">
-            {i < steps.length - 1 ? <span aria-hidden className="absolute bottom-0 left-2 top-5 w-px bg-border" /> : null}
-            <Icon size={16} weight="regular" aria-hidden className={cn("relative mt-0.5 shrink-0 bg-surface", deferred ? "text-warning" : "text-action")} />
-            <div className="flex min-w-0 flex-col">
-              <p className="flex flex-wrap items-baseline gap-x-2">
-                <span className="title-4 text-text">{s.name}</span>
-                <span className="font-mono text-xs text-text-muted">{s.time}</span>
-              </p>
-              {s.detail ? <p className="caption-5 text-text-subtle">{s.detail}</p> : null}
+          <li key={`${s.name}-${i}`} className="relative grid grid-cols-[auto_1fr] gap-x-4 pb-3 last:pb-0">
+            <span className="pt-0.5 font-mono text-xs tabular-nums text-text-muted">{s.time}</span>
+            <div className="relative flex min-w-0 flex-col pl-4">
+              <span aria-hidden className={cn("absolute left-0 top-2 size-2 rounded-xs", deferred ? "bg-warning" : "bg-accent")} />
+              {i < steps.length - 1 ? <span aria-hidden className="absolute -bottom-1 left-1 top-4 w-px bg-border-receipt" /> : null}
+              <span className={cn("title-4", deferred ? "text-warning" : "text-text")}>{s.name}</span>
+              {s.detail ? <span className="caption-5 text-text-subtle">{s.detail}</span> : null}
             </div>
           </li>
         );

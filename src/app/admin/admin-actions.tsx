@@ -31,7 +31,7 @@ export function ActionButton({ payload, label, variant = "secondary", askReason 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        {askReason ? <Input aria-label={`Reason for: ${label}`} placeholder="Reason (kept in the audit log)" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} className="sm:w-64" /> : null}
+        {askReason ? <Input aria-label={`Reason for: ${label}`} placeholder="Reason (kept in the audit log)" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} className="sm:w-2xs" /> : null}
         <Button variant={variant} size="md" loading={busy} onClick={() => run({ ...payload, ...(askReason && reason ? { reason } : {}) })}>{label}</Button>
       </div>
       <Status error={error} done={done} />

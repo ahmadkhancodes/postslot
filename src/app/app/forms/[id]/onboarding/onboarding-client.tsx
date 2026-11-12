@@ -17,7 +17,7 @@ function Linter({ endpoint }: { endpoint: string }) {
     <Panel title="Check your form HTML" description="Paste the form you added to your site. We check it before a visitor finds the problem. Nothing is stored.">
       <div className="flex flex-col gap-4">
         <Field label="Your form HTML" htmlFor="lint-code"><Textarea id="lint-code" value={code} onChange={(e) => setCode(e.target.value)} rows={8} spellCheck={false} className="font-mono text-xs" placeholder={`<form action="${endpoint}" method="POST">…</form>`} /></Field>
-        <div><Button onClick={() => setIssues(code.trim() ? lintSnippet(code, { endpoint }) : [])}>Check form</Button></div>
+        <div><Button variant="secondary" onClick={() => setIssues(code.trim() ? lintSnippet(code, { endpoint }) : [])}>Check form</Button></div>
         {issues ? (
           issues.length ? (
             <ul className="flex flex-col divide-y divide-border rounded-md border border-border" aria-label="Linter results">

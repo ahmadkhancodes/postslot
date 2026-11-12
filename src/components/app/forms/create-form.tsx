@@ -10,7 +10,7 @@ export function CreateForm() {
   const [error, setError] = useState<string | null>(null);
   return (
     <form
-      className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-5 sm:flex-row sm:items-end"
+      className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-6 sm:flex-row sm:items-end"
       onSubmit={async (e) => {
         e.preventDefault();
         setBusy(true);
