@@ -21,8 +21,25 @@ export function humanError(code: string | undefined, fallback = "Something went 
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; code: string; message: string };
 
-/** Same-origin JSON call. Never throws; errors come back as { ok:false, code, message }. */
-export async function api<T = Record<string, unknown>>(path: string, init: { method?: string; body?: unknown } = {}): Promise<ApiResult<T>> {
+const inflight = new Map<string, Promise<ApiResult<never>>>();
+
+/**
+ * Same-origin JSON call. Never throws; errors come back as { ok:false, code, message }.
+ * A write identical to one still in flight (a double click before the button re-renders as busy) shares that request
+ * instead of creating a second row.
+ */
+export function api<T = Record<string, unknown>>(path: string, init: { method?: string; body?: unknown } = {}): Promise<ApiResult<T>> {
+  const method = init.method ?? (init.body === undefined ? "GET" : "POST");
+  if (method === "GET") return send<T>(path, init);
+  const key = `${method} ${path} ${JSON.stringify(init.body ?? null)}`;
+  const running = inflight.get(key);
+  if (running) return running as Promise<ApiResult<T>>;
+  const p = send<T>(path, init).finally(() => inflight.delete(key));
+  inflight.set(key, p as Promise<ApiResult<never>>);
+  return p;
+}
+
+async function send<T>(path: string, init: { method?: string; body?: unknown }): Promise<ApiResult<T>> {
   try {
     const res = await fetch(path, {
       method: init.method ?? (init.body === undefined ? "GET" : "POST"),

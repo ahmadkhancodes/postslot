@@ -4,6 +4,8 @@ const PORT = 3100;
 export default defineConfig({
   testDir: "tests/e2e",
   timeout: 60_000,
+  // One worker: every spec signs in from the same address and Better Auth rate limits sign-in per IP.
+  workers: 1,
   use: { baseURL: process.env.BASE_URL ?? `http://localhost:${PORT}` },
   webServer: process.env.BASE_URL
     ? undefined

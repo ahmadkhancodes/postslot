@@ -18,7 +18,8 @@ export function SignInForm({ callbackURL, expiredLink }: { callbackURL: string; 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const value = email.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    // RFC 5321 limits: 254 characters in all, 64 before the @. Longer addresses can never receive mail.
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.length > 254 || value.indexOf("@") > 64) {
       setError("Enter a valid email address, like name@company.com.");
       return;
     }

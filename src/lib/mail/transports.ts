@@ -3,7 +3,10 @@ import { log } from "@/lib/logger";
 import type { MailMessage, MailTransport, SendResult } from "./types";
 
 /** Dev/test/stub transport: keeps messages in memory and logs the subject (never the body). */
-export const outbox: (MailMessage & { from: string; id: string; at: Date })[] = [];
+type OutboxItem = MailMessage & { from: string; id: string; at: Date };
+// Kept on globalThis: the bundler may give the mailer and the /api/dev/outbox route separate copies of this module.
+const g = globalThis as { __postslotOutbox?: OutboxItem[] };
+export const outbox: OutboxItem[] = (g.__postslotOutbox ??= []);
 
 export function consoleTransport(): MailTransport {
   return {
