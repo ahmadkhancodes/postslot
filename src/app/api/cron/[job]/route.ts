@@ -18,7 +18,7 @@ async function run(req: Request, { params }: { params: Promise<{ job: string }> 
   const given = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
   if (!secret || !safeEqual(given, secret)) return json({ error: "unauthorized" }, 401);
   const { job } = await params;
-  const fn = cronJobs[job];
+  const fn = Object.hasOwn(cronJobs, job) ? cronJobs[job] : undefined; // "constructor" etc. are not jobs
   if (!fn) return json({ error: "unknown_job" }, 404);
   const started = Date.now();
   try {

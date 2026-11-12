@@ -5,17 +5,23 @@ import { sendMail, transportFromEnv, type MailTransport } from "@/lib/mail";
 import { renderVerification } from "@/lib/delivery/templates";
 import { dispatchHeldUnverified, type Deps } from "@/lib/delivery/dispatch";
 import { normEmail } from "@/lib/security/disposable";
+import { rateLimit } from "@/lib/security/ratelimit";
 import type { Db } from "@/lib/db/types";
 import type { Form, Recipient, Submission } from "./types";
 
 export const VERIFY_RESEND_MS = 60_000;
 export const VERIFY_TTL_MS = 7 * 864e5;
+/** Confirmation mails one address may receive, whoever asks. */
+export const VERIFY_MAIL_RULE = { limit: 5, windowMs: 864e5 };
 export const recipientId = (orgId: string, email: string) => `${orgId}|${email.toLowerCase()}`;
 
 /** Emails a confirmation link. Throttled to one per minute per address. Content is never sent before this is confirmed. */
 export async function sendVerification(db: Db, r: Recipient, transport: MailTransport = transportFromEnv(), now = new Date()): Promise<boolean> {
   if (r.verifiedAt) return false;
   if (r.verifySentAt && now.getTime() - r.verifySentAt.getTime() < VERIFY_RESEND_MS) return false;
+  // Per address across every workspace: anyone can type a stranger's address, so cap what one address can receive
+  // (docs/SECURITY-REVIEW.md S-7). The one-a-minute throttle above alone allowed 1,440 mails a day per workspace.
+  if (!(await rateLimit(`verifymail:${r.email.toLowerCase()}`, VERIFY_MAIL_RULE, db, now.getTime())).ok) return false;
   const token = randomToken(24);
   await db.docs<Recipient>("recipients").update({ _id: r._id }, { verifyTokenHash: await sha256(token), verifySentAt: now });
   const mail = renderVerification(r.email, `${appUrl()}/verify-recipient?t=${token}`);

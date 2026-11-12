@@ -7,6 +7,7 @@ import { getDb } from "@/lib/db";
 import { releaseHeld } from "@/lib/delivery/process";
 import { log } from "@/lib/logger";
 import { json, withApi } from "@/lib/http";
+import { rateLimit } from "@/lib/security/ratelimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +18,10 @@ export const GET = withApi(async (req) => {
   const db = await getDb();
   let ent = await db.getEntitlement(ctx.org.id);
   const stripe = getStripe();
+  // Each refresh costs Stripe API calls on our shared key: 10 a minute per workspace (docs/SECURITY-REVIEW.md S-6).
+  if (new URL(req.url).searchParams.get("refresh") === "1") {
+    if (!(await rateLimit(`entrefresh:${ctx.org.id}`, { limit: 10, windowMs: 60_000 }, db)).ok) return json({ error: "rate_limited" }, 429, { "retry-after": "60" });
+  }
   if (new URL(req.url).searchParams.get("refresh") === "1" && stripe) {
     const acct = await db.getBillingAccount(ctx.org.id);
     if (acct?.stripeCustomerId) {
