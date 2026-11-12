@@ -21,11 +21,11 @@ async function audit(page: import("@playwright/test").Page, path: string) {
   }).then((o) => o.map((x) => `${path}: ${x}`));
 }
 
-test("signed out: every public page, link and control is sane at 375 and 1440, light and dark", async ({ page, request }) => {
+test("signed out: every public page, link and control is sane at 375 and 1440", async ({ page, request }) => {
   const problems = watch(page);
   const bad: string[] = [];
   const links = new Set<string>();
-  for (const [w, scheme] of [[375, "light"], [1440, "dark"]] as const) {
+  for (const [w, scheme] of [[375, "light"], [1440, "light"]] as const) {
     await page.setViewportSize({ width: w, height: 800 });
     await page.emulateMedia({ colorScheme: scheme });
     for (const p of PUBLIC) {
@@ -62,14 +62,14 @@ test("signed out: protected routes bounce to sign-in and return to the page afte
   await expect(page).toHaveURL(/\/app\/billing/);
 });
 
-test("signed in: every app page, link and control is sane at 375 and 1440, light and dark", async ({ page, request }) => {
+test("signed in: every app page, link and control is sane at 375 and 1440", async ({ page, request }) => {
   const problems = watch(page);
   await signInUI(page, request, `crawl${uniq()}@studio.test`);
   const { form } = await (await page.request.post("/api/forms", { data: { name: "Contact page" }, headers: { origin: new URL(page.url()).origin } })).json();
   const paths = ["/app", "/app/forms", `/app/forms/${form._id}`, `/app/forms/${form._id}/templates`, `/app/forms/${form._id}/webhooks`, `/app/forms/${form._id}/onboarding`, "/app/billing", "/app/domains", "/app/usage", "/app/settings/api-keys", "/app/settings/audit", "/app/settings/members", "/app/settings/profile", "/app/settings/security", "/app/settings/webhooks"];
   const bad: string[] = [];
   const links = new Set<string>();
-  for (const [w, scheme] of [[375, "dark"], [1440, "light"]] as const) {
+  for (const [w, scheme] of [[375, "light"], [1440, "light"]] as const) {
     await page.setViewportSize({ width: w, height: 800 });
     await page.emulateMedia({ colorScheme: scheme });
     for (const p of paths) {

@@ -49,16 +49,15 @@ test("templates preview, linter, test submission and webhook gate", async ({ pag
   const msgs = await (await request.get(`/api/dev/outbox?to=${encodeURIComponent(email)}`)).json();
   expect(msgs.messages.at(-1).subject).toContain("[Test]");
 
-  // Mobile + dark.
+  // Mobile.
   await page.setViewportSize({ width: 375, height: 800 });
-  await page.emulateMedia({ colorScheme: "dark" });
   await page.goto(`/app/forms/${form._id}/templates`);
   await expect(page.getByTestId("preview-subject")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await shots("templates-375-dark");
+  await shots("templates-375-light");
   await page.goto(`/app/forms/${form._id}/onboarding`);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await shots("onboarding-375-dark");
+  await shots("onboarding-375-light");
 
   // Webhooks are Starter and above; Free sees the upgrade notice, the API says plan_required.
   await page.goto(`/app/forms/${form._id}/webhooks`);

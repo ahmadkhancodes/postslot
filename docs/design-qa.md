@@ -1,6 +1,6 @@
 # Design QA: Postslot M1 storefront (5 Nov 2026)
 
-Scorecard per docs/factory/DESIGN_PLAYBOOK.md section 9. Screenshots: `docs/qa/m1/` (`/`, `/pricing`, `/compare/web3forms`, `/docs`, `/sign-in`, plus legal, 404; 375 and 1440, light and dark). Graded from the built app (`npm run build && npm start`).
+Scorecard per docs/factory/DESIGN_PLAYBOOK.md section 9. Screenshots: `docs/qa/m1/` (`/`, `/pricing`, `/compare/web3forms`, `/docs`, `/sign-in`, plus legal, 404; 375 and 1440). Graded from the built app (`npm run build && npm start`).
 
 | Category | Score | Worst problem |
 |---|---|---|

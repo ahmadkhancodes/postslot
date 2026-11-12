@@ -73,17 +73,15 @@ test("form endpoint delivers, quarantines spam, and the inbox shows receipts", a
   await expect(page.getByText("onSubmit")).toBeVisible();
 
   // Screenshots of the inbox page (docs/qa/m2).
-  for (const theme of ["light", "dark"] as const) {
+  {
     for (const width of [1440, 375]) {
       await page.setViewportSize({ width, height: width > 800 ? 900 : 812 });
-      await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
       await page.goto("/app?" + (width > 800 ? "" : ""));
-      await page.evaluate((t) => { localStorage.setItem("theme", t); document.documentElement.dataset.theme = t; }, theme);
       const first = page.getByRole("link", { name: /Mara Okafor/ });
       if (width > 800) await first.click();
       await page.waitForTimeout(300);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
-      await page.screenshot({ path: `docs/qa/m2/inbox-${width}-${theme}.png`, fullPage: true });
+      await page.screenshot({ path: `docs/qa/m2/inbox-${width}-light.png`, fullPage: true });
     }
   }
 });

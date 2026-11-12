@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,15 +17,6 @@
   --code-bg:#17181C;--code-text:#E9EAEE;--code-accent:#B49AF0;--code-muted:#9A9DA6;
   --sans:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
-}
-[data-theme=dark]{
-  --surface:#181818;--surface-raised:#1F1F1F;--surface-sunken:#000000;--surface-inverse:#F6F6F8;
-  --text:#F2F2F2;--text-subtle:#B4B4B4;--text-muted:#949494;--text-inverse:#181818;
-  --border:#313131;--border-strong:#707070;
-  --action:#B49AF0;--action-hover:#C6B2F5;--action-text:#1A1030;--action-surface:#241C38;--focus:#F2F2F2;
-  --success:#6FCF8F;--success-surface:#13261A;--warning:#E7B85A;--warning-surface:#2A210E;--danger:#F2766E;--danger-surface:#331513;
-  --hero-from:#FFFFFF;--hero-to:#9B9B9B;
-  --code-bg:#000000;--code-text:#E6E6E6;--code-muted:#949494;
 }
 *{box-sizing:border-box;margin:0}
 html{-webkit-text-size-adjust:100%}
@@ -68,7 +59,6 @@ h1{font-size:52px;line-height:1.06;letter-spacing:-.03em;font-weight:600;text-wr
 
 /* window (product UI) */
 .win{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 1px 0 rgba(0,0,0,.02)}
-[data-theme=dark] .win{border-color:#3a3a3a}
 .win-bar{display:flex;align-items:center;gap:12px;height:44px;padding:0 16px;border-bottom:1px solid var(--border);background:var(--surface-raised);font-size:13px;color:var(--text-subtle)}
 .win-bar .key{font-family:var(--mono);font-size:12px;color:var(--text-muted)}
 .win-bar .sp{flex:1}
@@ -136,7 +126,6 @@ h1{font-size:52px;line-height:1.06;letter-spacing:-.03em;font-weight:600;text-wr
 .sec-h{font-size:36px;line-height:1.15;letter-spacing:-.025em;font-weight:600;max-width:680px;text-wrap:balance}
 .sec-p{margin-top:12px;color:var(--text-subtle);max-width:600px}
 .app{margin-top:40px;display:grid;grid-template-columns:208px minmax(0,1fr);background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden}
-[data-theme=dark] .app{border-color:#3a3a3a}
 .rail{background:var(--surface-raised);border-right:1px solid var(--border);padding:16px 12px;display:flex;flex-direction:column;gap:2px;font-size:14px}
 .ws{display:flex;align-items:center;gap:8px;padding:6px 8px 16px;font-weight:600}
 .ws i{width:24px;height:24px;border-radius:50%;background:var(--surface-inverse);color:var(--text-inverse);font:600 11px/24px var(--sans);text-align:center;font-style:normal}
@@ -388,8 +377,6 @@ h1{font-size:52px;line-height:1.06;letter-spacing:-.03em;font-weight:600;text-wr
   <footer class="foot"><span>Postslot by BufferSol, a BufferSol product. Phase 0 design mock, fictional data.</span><span class="mono">tokens: docs/DESIGN.md</span></footer>
 </main>
 <script>
-// Theme for screenshots and review: ?theme=dark or #dark. Default follows the light tokens.
-(function(){var q=location.search+location.hash;if(/dark/.test(q))document.documentElement.setAttribute("data-theme","dark")})();
 </script>
 </body>
 </html>
