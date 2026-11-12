@@ -6,8 +6,8 @@ export function Container({ className, children }: { className?: string; childre
 }
 
 /** Marketing section: 48-64px mobile, 64-96px desktop vertical padding by `space`. Pass `tone` to step the surface. */
-export function Section({ id, tone = "base", space = "lg", className, children, labelledBy }: { id?: string; tone?: "base" | "raised" | "receipt" | "inverse"; space?: "lg" | "md" | "sm"; className?: string; children: ReactNode; labelledBy?: string }) {
-  const t = { base: "bg-surface", raised: "bg-surface-raised", receipt: "bg-surface-receipt", inverse: "bg-surface-inverse text-text-inverse" }[tone];
+export function Section({ id, tone = "base", space = "lg", className, children, labelledBy }: { id?: string; tone?: "base" | "raised" | "receipt"; space?: "lg" | "md" | "sm"; className?: string; children: ReactNode; labelledBy?: string }) {
+  const t = { base: "bg-surface", raised: "bg-surface-raised", receipt: "bg-surface-receipt" }[tone];
   // Varied rhythm (design brief §4): sections do not all share one padding.
   const s = { lg: "py-16 md:py-24", md: "py-12 md:py-20", sm: "py-12 md:py-16" }[space];
   return (
