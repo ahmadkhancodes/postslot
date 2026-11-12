@@ -18,14 +18,14 @@ export function InboxExplainer() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="title-3 text-text">Hi, can I book a cleaning for next Tuesday?</p>
-              <p className="mt-1 break-words font-mono text-xs text-text-muted">sub_01JC8F2Q · Contact form · 5 Nov 2026 14:02:03 UTC</p>
+              <p className="mt-1 break-words code-2 text-text-muted">sub_01JC8F2Q · Contact form · 5 Nov 2026 14:02:03 UTC</p>
             </div>
             <StatusChip status="Delivered" />
           </div>
           <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-y border-dashed border-border-receipt py-4">
-            <dt className="font-mono text-xs text-text-muted">name</dt><dd className="body-6 text-text">Anna Kowalski</dd>
-            <dt className="font-mono text-xs text-text-muted">email</dt><dd className="break-all font-mono text-xs text-text">anna@example.com</dd>
-            <dt className="font-mono text-xs text-text-muted">message</dt><dd className="body-6 text-text">Hi, can I book a cleaning for next Tuesday? Mornings are best.</dd>
+            <dt className="code-2 text-text-muted">name</dt><dd className="body-6 text-text">Anna Kowalski</dd>
+            <dt className="code-2 text-text-muted">email</dt><dd className="break-all code-2 text-text">anna@example.com</dd>
+            <dt className="code-2 text-text-muted">message</dt><dd className="body-6 text-text">Hi, can I book a cleaning for next Tuesday? Mornings are best.</dd>
           </dl>
           <div className="flex flex-col gap-2">
             <p className="label-mono text-text-subtle">Delivery timeline</p>
@@ -42,7 +42,7 @@ export function InboxExplainer() {
         </div>
         <div className="flex min-w-0 flex-col gap-0 border-t border-text lg:col-span-5">
           <div className="flex flex-col gap-4 border-b border-border py-6">
-            <p className="flex items-baseline justify-between gap-2"><span className="title-3 text-text">Usage this month</span><span className="font-mono text-xs text-text-muted">NOV 2026</span></p>
+            <p className="flex items-baseline justify-between gap-2"><span className="title-3 text-text">Usage this month</span><span className="code-2 text-text-muted">NOV 2026</span></p>
             <div role="img" aria-label="214 of 250 legitimate submissions used, 9 spam, 3 held" className="flex h-2 overflow-hidden rounded-sm bg-surface-sunken">
               <span style={{ width: "68%" }} className="h-full bg-text" />
               <span style={{ width: "5%" }} className="h-full bg-warning" />

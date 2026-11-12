@@ -49,10 +49,12 @@ describe("design system", () => {
     expect(bad).toEqual([]);
   });
 
-  it("has no gradient hero text, stat strip or glass header left over", () => {
+  it("has no gradient hero text, stat strip or glass surfaces left over", () => {
     for (const f of tsx) {
       const s = read(f);
-      expect(s, f).not.toMatch(/hero-gradient-text|StatStrip|backdrop-blur/);
+      expect(s, f).not.toMatch(/hero-gradient-text|StatStrip/);
+      // The one blurred surface is the floating marketing nav and its mobile panel (skill B7, owner directive 12 Nov 2026).
+      if (!f.endsWith("site-header.tsx")) expect(s, f).not.toMatch(/backdrop-blur/);
     }
   });
 });

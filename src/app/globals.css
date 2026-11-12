@@ -153,6 +153,8 @@
 @utility body-4 { font-size: 0.875rem; line-height: 1.25rem; font-weight: 600; text-wrap: pretty; }
 @utility body-5 { font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; text-wrap: pretty; }
 @utility body-6 { font-size: 0.875rem; line-height: 1.25rem; font-weight: 400; text-wrap: pretty; }
+/* Body 7: lead paragraph (hero subheading), text-lg regular. */
+@utility body-7 { font-size: 1.125rem; line-height: 1.75rem; font-weight: 400; text-wrap: pretty; }
 @utility button-lg { font-size: 1.125rem; line-height: 1.75rem; font-weight: 600; }
 @utility button-md { font-size: 1rem; line-height: 1.5rem; font-weight: 600; }
 @utility button-sm { font-size: 0.875rem; line-height: 1.25rem; font-weight: 600; }
@@ -163,6 +165,9 @@
 @utility caption-4 { font-size: 0.75rem; line-height: 1rem; font-weight: 500; }
 @utility label-mono { font-family: var(--font-mono-family); font-size: 0.75rem; line-height: 1rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
 @utility caption-5 { font-size: 0.75rem; line-height: 1rem; font-weight: 400; }
+/* Mono styles for keys, endpoints, timestamps and sample data (the approved mono in the type pairing). */
+@utility code-1 { font-family: var(--font-mono-family); font-size: 0.875rem; line-height: 1.25rem; font-weight: 400; }
+@utility code-2 { font-family: var(--font-mono-family); font-size: 0.75rem; line-height: 1rem; font-weight: 400; }
 
 /* The one shadow: a 1px offset ink edge, like a card laid on a desk. Product frames and dialogs only. */
 @utility shadow-stamp { box-shadow: 4px 4px 0 0 hsl(var(--shadow-color) / 0.08), 0 1px 2px 0 hsl(var(--shadow-color) / 0.06); }
@@ -192,12 +197,13 @@
 /* Scroll reveal (rise 32px + fade, once). Reduced motion: opacity only. */
 .kit-reveal { opacity: 0; transform: translateY(32px); transition: opacity 700ms var(--ease-out-kit), transform 700ms var(--ease-out-kit); }
 .kit-reveal[data-visible="true"] { opacity: 1; transform: none; }
-/* Unlit words stay AA readable (text-muted is 5.9:1 on white); lit words turn ink. */
-.kit-word { color: var(--text-muted); transition: color 500ms var(--ease-out-kit); }
-.kit-word[data-on="true"] { color: var(--text); }
+/* Tagline reveal (skill B11): unlit words show the ink at 30% opacity, lit words turn full ink one by one.
+   Opacity, not colour, so the reveal animates only opacity (B7). */
+.kit-word { color: var(--text); opacity: 0.3; transition: opacity 500ms var(--ease-out-kit); }
+.kit-word[data-on="true"] { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   .kit-reveal { transform: none; transition: opacity 300ms var(--ease-out-kit); }
-  .kit-word { color: var(--text); transition: none; }
+  .kit-word { opacity: 1; transition: none; }
   *, *::before, *::after { animation-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 
